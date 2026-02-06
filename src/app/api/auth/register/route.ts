@@ -13,6 +13,15 @@ import { isValidPassword } from "@/backend/infrastructure/api/validation";
 export const POST = createHandler(
   async (request) => {
     try {
+      // Check if registrations are disabled
+      const registrationsEnabled = process.env.ENABLE_REGISTRATIONS !== "false";
+      if (!registrationsEnabled) {
+        const error: ErrorResponseDto = {
+          error: "Les inscriptions sont actuellement fermées"
+        };
+        return NextResponse.json(error, { status: 403 });
+      }
+
       const body: RegisterRequestDto = await request.json();
       const { email, password, fullName } = body;
 

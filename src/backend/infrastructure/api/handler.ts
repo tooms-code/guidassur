@@ -146,6 +146,7 @@ const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_APP_URL,
   "http://localhost:3000",
   "https://localhost:3000",
+  "https://guidassur.vercel.app",
 ].filter(Boolean) as string[];
 
 function validateCsrf(request: NextRequest): boolean {
