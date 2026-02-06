@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { X, ChevronLeft, Loader2 } from "lucide-react";
 import { InsuranceType } from "@/shared/types/questionnaire";
 import { useQuestionnaire } from "@/frontend/hooks/useQuestionnaire";
+import { useAuth } from "@/frontend/hooks/useAuth";
 import { ProgressBar } from "./ProgressBar";
 import { QuestionRenderer } from "./QuestionRenderer";
 import { QuestionTip } from "./QuestionTip";
+import { SaveDraftModal } from "./SaveDraftModal";
+
+const PENDING_SESSION_KEY = "guidassur_pending_session";
 
 interface QuestionnaireShellProps {
   type: InsuranceType;
@@ -18,6 +22,12 @@ export function QuestionnaireShell({ type }: QuestionnaireShellProps) {
   const router = useRouter();
   const hasStarted = useRef(false);
   const isCompleting = useRef(false);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const { user, isLoading: authLoading } = useAuth();
+  const isAuthenticated = !authLoading && !!user;
+
   const {
     sessionId,
     currentQuestion,
@@ -30,7 +40,9 @@ export function QuestionnaireShell({ type }: QuestionnaireShellProps) {
     submitAnswer,
     goBack,
     complete,
+    saveDraft,
     reset,
+    abandon,
   } = useQuestionnaire();
 
   // Start questionnaire on mount
@@ -57,9 +69,35 @@ export function QuestionnaireShell({ type }: QuestionnaireShellProps) {
     }
   };
 
-  const handleClose = () => {
-    reset();
+  const handleCloseClick = () => {
+    setShowExitModal(true);
+  };
+
+  const handleQuit = async () => {
+    setShowExitModal(false);
+    await abandon();
     router.push("/");
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await saveDraft();
+      setShowExitModal(false);
+      reset();
+      router.push("/compte");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLoginToSave = () => {
+    // Store session ID to resume after login
+    if (sessionId) {
+      sessionStorage.setItem(PENDING_SESSION_KEY, sessionId);
+    }
+    setShowExitModal(false);
+    router.push("/login?redirect=/questionnaire/resume");
   };
 
   const canGoBack = progress && progress.current > 1;
@@ -89,7 +127,7 @@ export function QuestionnaireShell({ type }: QuestionnaireShellProps) {
           </div>
 
           <button
-            onClick={handleClose}
+            onClick={handleCloseClick}
             className="p-2 -mr-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
           >
             <X size={24} />
@@ -183,6 +221,17 @@ export function QuestionnaireShell({ type }: QuestionnaireShellProps) {
           </div>
         )}
       </main>
+
+      {/* Exit Modal */}
+      <SaveDraftModal
+        isOpen={showExitModal}
+        isAuthenticated={isAuthenticated}
+        isSaving={isSaving}
+        onClose={() => setShowExitModal(false)}
+        onQuit={handleQuit}
+        onSave={handleSave}
+        onLoginToSave={handleLoginToSave}
+      />
     </div>
   );
 }

@@ -47,7 +47,7 @@ export class DepassementsStrategy implements IStrategy {
         insight: {
           title: "Dépassements non couverts",
           description: "Tu consultes fréquemment des spécialistes mais tes dépassements ne sont pas couverts.",
-          fullDescription: "Les dépassements d'honoraires peuvent atteindre 50-150€ par consultation chez certains spécialistes (dermato, ophtalmo, psy...). Sans couverture, ces frais s'accumulent rapidement. Une garantie dépassements réduirait significativement ton reste à charge.",
+          fullDescription: "Les dépassements d'honoraires peuvent atteindre 50-150€ par consultation chez certains spécialistes (dermatologue, ophtalmologue, psychiatre, psychologue...). Sans couverture, ces frais s'accumulent rapidement. Une garantie dépassements réduirait significativement ton reste à charge.",
         },
         savingsImpact: null,
       };
@@ -59,7 +59,7 @@ export class DepassementsStrategy implements IStrategy {
       insight: {
         title: "Bonne couverture des dépassements",
         description: "Tu consultes des spécialistes et tu es couvert pour les dépassements.",
-        fullDescription: "Ta garantie dépassements d'honoraires limite ton reste à charge chez les spécialistes en secteur 2. Tu peux consulter sereinement dermatologue, ophtalmo ou autres spécialistes.",
+        fullDescription: "Ta garantie dépassements d'honoraires limite ton reste à charge chez les spécialistes en secteur 2. Tu peux consulter sereinement dermatologue, ophtalmologue ou autres spécialistes.",
       },
       savingsImpact: null,
     };

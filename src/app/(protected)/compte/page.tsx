@@ -1,70 +1,99 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
+import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
 import {
   ChevronRight,
-  Car,
-  Home,
-  Heart,
-  Shield,
   Lock,
   Unlock,
   BarChart3,
   Settings,
   FileText,
-  Plus,
   Filter,
+  Trash2,
+  Receipt,
 } from "lucide-react";
 import { useAuth } from "@/frontend/hooks/useAuth";
-import { useUserAnalyses } from "@/frontend/hooks/useUser";
+import { useUserAnalyses, useUserDrafts, useDeleteDraft } from "@/frontend/queries/user";
 import { InsuranceType } from "@/shared/types/insurance";
 import { AnalysisSortField, SortOrder } from "@/backend/domain/interfaces/IUserService";
 import { Button } from "@/frontend/components/ui/button";
-
-const insuranceIcons: Record<InsuranceType, typeof Car> = {
-  [InsuranceType.AUTO]: Car,
-  [InsuranceType.HABITATION]: Home,
-  [InsuranceType.GAV]: Shield,
-  [InsuranceType.MUTUELLE]: Heart,
-};
-
-const typeLabels: Record<InsuranceType, string> = {
-  [InsuranceType.AUTO]: "Auto",
-  [InsuranceType.HABITATION]: "Habitation",
-  [InsuranceType.GAV]: "GAV",
-  [InsuranceType.MUTUELLE]: "Mutuelle",
-};
-
-function getScoreColor(score: number) {
-  if (score >= 75) return "text-emerald-600";
-  if (score >= 50) return "text-amber-600";
-  return "text-red-500";
-}
+import { Pagination } from "@/frontend/components/ui/Pagination";
+import { insuranceIcons, insuranceLabels } from "@/frontend/constants/insurance";
+import { getScoreColor, formatDate, formatTimeAgo } from "@/frontend/lib/format";
+import { useVerifyStripeSession } from "@/frontend/queries/checkout";
 
 export default function DashboardPage() {
+  return (
+    <Suspense>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const [creditAnimation, setCreditAnimation] = useState<number | null>(null);
+  const verifySession = useVerifyStripeSession();
+  const verificationTriggered = useRef(false);
+
+  // Handle payment success redirect - verify with Stripe
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    const sessionId = searchParams.get("session_id");
+    const credits = searchParams.get("credits");
+
+    if (payment === "success" && sessionId && !verificationTriggered.current) {
+      verificationTriggered.current = true;
+
+      // Clean URL immediately
+      window.history.replaceState({}, "", "/compte");
+
+      // Verify payment with Stripe (this adds credits if webhook hasn't yet)
+      verifySession.mutate(
+        { sessionId },
+        {
+          onSuccess: (result) => {
+            if (result.success) {
+              // Trigger credit animation
+              const creditCount = result.credits || (credits ? parseInt(credits, 10) : 0);
+              if (creditCount > 0) {
+                setCreditAnimation(creditCount);
+                setTimeout(() => setCreditAnimation(null), 2000);
+              }
+            }
+          },
+        }
+      );
+    }
+  }, [searchParams, verifySession]);
 
   const [filterType, setFilterType] = useState<InsuranceType | "all">("all");
   const [filterUnlocked, setFilterUnlocked] = useState<boolean | "all">("all");
   const [sortBy, setSortBy] = useState<AnalysisSortField>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [limit, setLimit] = useState(5);
+  const [offset, setOffset] = useState(0);
 
   const { data, isLoading } = useUserAnalyses({
     insuranceType: filterType === "all" ? undefined : filterType,
     isUnlocked: filterUnlocked === "all" ? undefined : filterUnlocked,
     sortBy,
     sortOrder,
+    limit,
+    offset,
   });
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+  const { data: draftsData } = useUserDrafts();
+  const deleteDraft = useDeleteDraft();
+
+  const handleDeleteDraft = (e: React.MouseEvent, draftId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    deleteDraft.mutate(draftId);
   };
 
   return (
@@ -77,13 +106,34 @@ export default function DashboardPage() {
               Bonjour, {user?.fullName?.split(" ")[0] || ""}
             </h1>
             <p className="text-gray-500 mt-1">
-              Gérez vos analyses et paramètres
+              Retrouvez toutes vos analyses d&apos;assurance
             </p>
           </div>
-          <div className="px-4 py-2 bg-emerald-50 rounded-lg">
-            <span className="text-sm text-emerald-700 font-medium">
-              {user?.credits || 0} crédit{(user?.credits || 0) !== 1 ? "s" : ""}
-            </span>
+          <div className="relative">
+            <motion.div
+              key={user?.credits}
+              initial={creditAnimation ? { scale: 1.2 } : false}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+              className="px-4 py-2 bg-emerald-50 rounded-lg"
+            >
+              <span className="text-sm text-emerald-700 font-medium">
+                {user?.credits || 0} crédit{(user?.credits || 0) !== 1 ? "s" : ""}
+              </span>
+            </motion.div>
+            <AnimatePresence>
+              {creditAnimation && (
+                <motion.div
+                  initial={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 0, y: -30 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  className="absolute -top-2 left-1/2 -translate-x-1/2 text-emerald-500 font-bold text-lg"
+                >
+                  +{creditAnimation}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -93,7 +143,7 @@ export default function DashboardPage() {
             href="/compte/stats"
             className="flex items-center gap-4 p-6 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 transition-colors group"
           >
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center">
               <BarChart3 className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
@@ -105,11 +155,26 @@ export default function DashboardPage() {
           </Link>
 
           <Link
+            href="/compte/paiements"
+            className="flex items-center gap-4 p-6 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 transition-colors group"
+          >
+            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center">
+              <Receipt className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">
+                Paiements
+              </p>
+              <p className="text-sm text-gray-500">Historique & crédits</p>
+            </div>
+          </Link>
+
+          <Link
             href="/compte/parametres"
             className="flex items-center gap-4 p-6 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 transition-colors group"
           >
-            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-              <Settings className="w-5 h-5 text-gray-600" />
+            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center">
+              <Settings className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
               <p className="font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">
@@ -118,20 +183,61 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-500">Sécurité & compte</p>
             </div>
           </Link>
-
-          <Link
-            href="/"
-            className="flex items-center gap-4 p-6 bg-emerald-500 rounded-xl hover:bg-emerald-600 transition-colors group"
-          >
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-              <Plus className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="font-medium text-white">Nouvelle analyse</p>
-              <p className="text-sm text-emerald-100">Analyser un contrat</p>
-            </div>
-          </Link>
         </div>
+
+        {/* In Progress Drafts */}
+        {draftsData && draftsData.drafts.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              En cours ({draftsData.drafts.length})
+            </h2>
+            <div className="space-y-3">
+              {draftsData.drafts.map((draft, index) => {
+                const Icon = insuranceIcons[draft.type as InsuranceType];
+                const timeAgo = formatTimeAgo(draft.updatedAt);
+                return (
+                  <motion.div
+                    key={draft.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Link
+                      href={`/questionnaire/resume/${draft.id}`}
+                      className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-amber-400 transition-colors group"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-5 h-5 text-gray-600" />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium text-gray-900">
+                            {insuranceLabels[draft.type as InsuranceType]}
+                          </p>
+                          <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                            En cours
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          {draft.answersCount} question{draft.answersCount !== 1 ? "s" : ""} répondue{draft.answersCount !== 1 ? "s" : ""} · {timeAgo}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={(e) => handleDeleteDraft(e, draft.id)}
+                        className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-4 mb-8">
@@ -144,14 +250,14 @@ export default function DashboardPage() {
             {(["all", InsuranceType.AUTO, InsuranceType.HABITATION, InsuranceType.GAV, InsuranceType.MUTUELLE] as const).map((type) => (
               <button
                 key={type}
-                onClick={() => setFilterType(type)}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                onClick={() => { setFilterType(type); setOffset(0); }}
+                className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                   filterType === type
-                    ? "bg-emerald-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-emerald-500 text-white border-emerald-500"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                 }`}
               >
-                {type === "all" ? "Tous" : typeLabels[type]}
+                {type === "all" ? "Tous" : insuranceLabels[type]}
               </button>
             ))}
           </div>
@@ -169,13 +275,14 @@ export default function DashboardPage() {
                 onClick={() => {
                   if (item.value === "all") setFilterUnlocked("all");
                   else setFilterUnlocked(item.value === "unlocked");
+                  setOffset(0);
                 }}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                   (filterUnlocked === "all" && item.value === "all") ||
                   (filterUnlocked === true && item.value === "unlocked") ||
                   (filterUnlocked === false && item.value === "locked")
-                    ? "bg-emerald-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-emerald-500 text-white border-emerald-500"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                 }`}
               >
                 {item.label}
@@ -193,8 +300,9 @@ export default function DashboardPage() {
               const [field, order] = e.target.value.split("-") as [AnalysisSortField, SortOrder];
               setSortBy(field);
               setSortOrder(order);
+              setOffset(0);
             }}
-            className="text-sm text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="text-sm text-gray-900 bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:border-emerald-500"
           >
             <option value="date-desc">Plus récent</option>
             <option value="date-asc">Plus ancien</option>
@@ -215,8 +323,8 @@ export default function DashboardPage() {
                 <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />
               ))}
             </div>
-          ) : data?.analyses.length === 0 ? (
-            <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-200">
+          ) : data?.data.length === 0 ? (
+            <div className="text-center py-16 rounded-xl border border-gray-200">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 mb-6">Aucune analyse trouvée</p>
               <Link href="/">
@@ -225,7 +333,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {data?.analyses.map((analysis, index) => {
+              {data?.data.map((analysis, index) => {
                 const Icon = insuranceIcons[analysis.insuranceType];
                 return (
                   <motion.div
@@ -238,7 +346,7 @@ export default function DashboardPage() {
                       href={`/resultat/${analysis.id}`}
                       className="flex items-center gap-4 p-5 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 transition-colors group"
                     >
-                      <div className="w-14 h-14 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <div className="w-14 h-14 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
                         <Icon className="w-6 h-6 text-emerald-600" />
                       </div>
 
@@ -277,6 +385,16 @@ export default function DashboardPage() {
                 );
               })}
             </div>
+          )}
+
+          {data && (
+            <Pagination
+              total={data.total}
+              limit={data.limit}
+              offset={data.offset}
+              onPageChange={setOffset}
+              onLimitChange={setLimit}
+            />
           )}
         </div>
       </div>

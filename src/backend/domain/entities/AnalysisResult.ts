@@ -20,6 +20,11 @@ export interface AnalysisResult {
   totalSavings: { min: number; max: number };
   savingsBreakdown: SavingsBreakdown[];
   createdAt: number;
+  // User linking
+  userId?: string;
+  isUnlocked: boolean;
+  // Store answers for later unlock (when user comes back)
+  answers?: Record<string, unknown>;
 }
 
 export function calculateScoreLabel(score: number): ScoreLabel {

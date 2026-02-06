@@ -1,4 +1,5 @@
 import { InsuranceType } from "@/shared/types/insurance";
+import { PaginatedResponse } from "@/shared/types/pagination";
 import { UserAnalysis, UserStats, UserSettings } from "@/backend/domain/entities/UserAnalysis";
 import { AnalysisSortField, SortOrder } from "@/backend/domain/interfaces/IUserService";
 
@@ -15,6 +16,7 @@ export interface GetAnalysesRequestDto {
 
 export interface UpdateSettingsRequestDto {
   fullName?: string;
+  phone?: string;
   emailNotifications?: boolean;
 }
 
@@ -29,6 +31,11 @@ export interface Verify2FARequestDto {
 
 export interface Disable2FARequestDto {
   code: string;
+}
+
+export interface DeleteAccountRequestDto {
+  password: string;
+  mfaCode?: string;
 }
 
 // ===== Response DTOs =====
@@ -46,11 +53,7 @@ export interface UserAnalysisDto {
   createdAt: string;
 }
 
-export interface GetAnalysesResponseDto {
-  analyses: UserAnalysisDto[];
-  total: number;
-  hasMore: boolean;
-}
+export type GetAnalysesResponseDto = PaginatedResponse<UserAnalysisDto>;
 
 export interface UserStatsDto {
   totalAnalyses: number;
@@ -69,16 +72,16 @@ export interface UserStatsDto {
 export interface UserSettingsDto {
   email: string;
   fullName: string;
+  phone: string;
   twoFactorEnabled: boolean;
   emailNotifications: boolean;
   memberSince: string;
 }
 
-export interface Enable2FAResponseDto {
-  success: boolean;
-  secret?: string;
-  qrCodeUrl?: string;
-  error?: string;
+export interface EnrollMFAResponseDto {
+  factorId: string;
+  secret: string;
+  qrCodeUrl: string;
 }
 
 // ===== Mappers =====
@@ -127,6 +130,7 @@ export function mapUserSettingsToDto(settings: UserSettings): UserSettingsDto {
   return {
     email: settings.email,
     fullName: settings.fullName,
+    phone: settings.phone,
     twoFactorEnabled: settings.twoFactorEnabled,
     emailNotifications: settings.emailNotifications,
     memberSince: new Date(settings.createdAt).toISOString(),

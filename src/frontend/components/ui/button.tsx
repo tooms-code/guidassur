@@ -1,4 +1,4 @@
-import { cn } from "@/shared/utils";
+import { cn } from "@/frontend/lib/cn";
 import { ButtonHTMLAttributes, forwardRef } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

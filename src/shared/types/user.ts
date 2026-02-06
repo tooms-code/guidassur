@@ -4,4 +4,5 @@ export interface User {
   fullName: string;
   credits: number;
   createdAt: number;
+  emailVerified: boolean;
 }

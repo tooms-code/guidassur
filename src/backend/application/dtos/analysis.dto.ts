@@ -11,6 +11,7 @@ import {
   InsightContent,
   SavingsImpact,
 } from "@/backend/domain/entities/Insight";
+import { generateId } from "@/backend/infrastructure/utils/id";
 
 // ===== Request DTOs =====
 
@@ -56,14 +57,17 @@ export interface SavingsBreakdownDto {
   description: string;
 }
 
-export interface FreeAnalysisResponseDto {
+// Single response DTO - API filters insights based on isUnlocked
+export interface AnalysisPublicDto {
   id: string;
   sessionId: string;
   insuranceType: InsuranceType;
+  isSaved: boolean;
+  isUnlocked: boolean;
   score: number;
   scoreLabel: ScoreLabel;
-  freeInsights: InsightDto[];
-  lockedInsightsCount: number;
+  insights: InsightDto[];  // Only visible insights (filtered by API)
+  lockedCount: number;     // Number of locked insights (0 if unlocked)
   potentialSavingsMin: number;
   potentialSavingsMax: number;
   createdAt: string;
@@ -107,42 +111,27 @@ export function mapAnalysisToDto(analysis: AnalysisResult): AnalysisResponseDto 
   };
 }
 
-export function mapAnalysisToFreeDto(analysis: AnalysisResult): FreeAnalysisResponseDto {
-  const freeInsights = analysis.insights.filter((i) => i.isFreeInsight);
-  const lockedInsights = analysis.insights.filter((i) => !i.isFreeInsight);
+// Single mapper - filters insights based on isUnlocked status
+export function mapAnalysisToPublicDto(analysis: AnalysisResult): AnalysisPublicDto {
+  const visibleInsights = analysis.isUnlocked
+    ? analysis.insights
+    : analysis.insights.filter((i) => i.isFreeInsight);
+
+  const lockedCount = analysis.isUnlocked
+    ? 0
+    : analysis.insights.filter((i) => !i.isFreeInsight).length;
 
   return {
     id: analysis.id,
     sessionId: analysis.sessionId,
     insuranceType: analysis.insuranceType,
+    isSaved: !!analysis.userId,
+    isUnlocked: analysis.isUnlocked,
     score: analysis.score,
     scoreLabel: analysis.scoreLabel,
-    freeInsights: freeInsights.map((insight) => mapInsightToDto(insight, true)),
-    lockedInsightsCount: lockedInsights.length,
-    potentialSavingsMin: analysis.totalSavings.min,
-    potentialSavingsMax: analysis.totalSavings.max,
-    createdAt: new Date(analysis.createdAt).toISOString(),
-  };
-}
-
-// Full DTO with all insights unlocked (for paid users)
-export interface FullAnalysisResponseDto extends FreeAnalysisResponseDto {
-  unlockedInsights: InsightDto[];
-}
-
-export function mapAnalysisToFullDto(analysis: AnalysisResult): FullAnalysisResponseDto {
-  const freeInsights = analysis.insights.filter((i) => i.isFreeInsight);
-  const paidInsights = analysis.insights.filter((i) => !i.isFreeInsight);
-
-  return {
-    id: analysis.id,
-    sessionId: analysis.sessionId,
-    insuranceType: analysis.insuranceType,
-    score: analysis.score,
-    scoreLabel: analysis.scoreLabel,
-    freeInsights: freeInsights.map((insight) => mapInsightToDto(insight, true)),
-    unlockedInsights: paidInsights.map((insight) => mapInsightToDto(insight, true)),
-    lockedInsightsCount: 0, // All unlocked
+    // showFull = true only when analysis is unlocked (paid content)
+    insights: visibleInsights.map((insight) => mapInsightToDto(insight, analysis.isUnlocked)),
+    lockedCount,
     potentialSavingsMin: analysis.totalSavings.min,
     potentialSavingsMax: analysis.totalSavings.max,
     createdAt: new Date(analysis.createdAt).toISOString(),
@@ -161,7 +150,7 @@ export function createInsightFromStrategy(
   isFreeInsight: boolean
 ): Insight {
   return {
-    id: `insight_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: generateId(),
     strategyId,
     category,
     status,

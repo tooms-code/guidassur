@@ -8,35 +8,40 @@ import { Button } from "@/frontend/components/ui/button";
 interface NumberInputProps {
   question: QuestionDto;
   onAnswer: (answer: number | null) => void;
+  error?: string | null;
 }
 
-export function NumberInput({ question, onAnswer }: NumberInputProps) {
+export function NumberInput({ question, onAnswer, error: externalError }: NumberInputProps) {
   const [value, setValue] = useState<string>(
     question.currentValue !== undefined ? String(question.currentValue) : ""
   );
-  const [error, setError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  // Combine external (backend validation) and local (frontend validation) errors
+  const displayError = externalError || localError;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value.replace(/[^0-9]/g, "");
     setValue(newValue);
-    setError(null);
+    setLocalError(null);
+    // Note: externalError will be cleared when the answer is resubmitted
   };
 
   const handleContinue = () => {
     const numValue = value ? parseInt(value, 10) : null;
 
     if (question.required && numValue === null) {
-      setError("Ce champ est requis");
+      setLocalError("Ce champ est requis");
       return;
     }
 
     if (numValue !== null) {
       if (question.min !== undefined && numValue < question.min) {
-        setError(`La valeur minimum est ${question.min}`);
+        setLocalError(`La valeur minimum est ${question.min}`);
         return;
       }
       if (question.max !== undefined && numValue > question.max) {
-        setError(`La valeur maximum est ${question.max}`);
+        setLocalError(`La valeur maximum est ${question.max}`);
         return;
       }
     }
@@ -59,6 +64,11 @@ export function NumberInput({ question, onAnswer }: NumberInputProps) {
       className="space-y-4"
     >
       <div className="relative">
+        {question.unit && (
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-gray-400 font-medium">
+            {question.unit}
+          </span>
+        )}
         <input
           type="text"
           inputMode="numeric"
@@ -67,26 +77,21 @@ export function NumberInput({ question, onAnswer }: NumberInputProps) {
           onKeyDown={handleKeyDown}
           placeholder={question.placeholder || ""}
           className={`
-            w-full text-center text-3xl font-semibold py-6 px-4
-            border-2 rounded-xl bg-white
+            w-full text-center text-2xl font-semibold py-4 ${question.unit ? "pl-10 pr-4" : "px-4"}
+            border rounded-xl bg-white
             focus:outline-none transition-colors duration-150
             ${
-              error
+              displayError
                 ? "border-red-300 focus:border-red-500"
                 : "border-gray-200 focus:border-emerald-500"
             }
           `}
           autoFocus
         />
-        {question.unit && (
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-400 font-medium">
-            {question.unit}
-          </span>
-        )}
       </div>
 
-      {error && (
-        <p className="text-center text-sm text-red-500">{error}</p>
+      {displayError && (
+        <p className="text-center text-sm text-red-500">{displayError}</p>
       )}
 
       {question.min !== undefined && question.max !== undefined && (

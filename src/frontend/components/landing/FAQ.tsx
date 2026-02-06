@@ -2,7 +2,7 @@
 
 import { Plus, Minus } from "lucide-react";
 import { useState } from "react";
-import { FAQ_ITEMS } from "@/shared/constants";
+import { FAQ_ITEMS } from "@/frontend/constants/landing";
 import { motion } from "motion/react";
 
 export function FAQ() {

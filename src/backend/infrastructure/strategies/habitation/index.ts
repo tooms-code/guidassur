@@ -6,8 +6,10 @@ import { SecuriteStrategy } from "./SecuriteStrategy";
 import { FranchiseHabStrategy } from "./FranchiseHabStrategy";
 import { ValeurMobilierStrategy } from "./ValeurMobilierStrategy";
 import { ObjetsValeurStrategy } from "./ObjetsValeurStrategy";
+import { PrixSurfaceStrategy } from "./PrixSurfaceStrategy";
 
 export const habitationStrategies: IStrategy[] = [
+  new PrixSurfaceStrategy(),
   new ResponsabiliteCivileStrategy(),
   new IncendieDegatsEauxStrategy(),
   new VolStrategy(),

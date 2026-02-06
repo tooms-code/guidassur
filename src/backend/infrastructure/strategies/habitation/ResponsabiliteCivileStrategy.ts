@@ -21,7 +21,7 @@ export class ResponsabiliteCivileStrategy implements IStrategy {
         insight: {
           title: "Responsabilité civile absente",
           description: "Tu n'as pas de responsabilité civile habitation. C'est obligatoire pour les locataires.",
-          fullDescription: "La responsabilité civile couvre les dommages que tu pourrais causer à des tiers (dégât des eaux chez le voisin, incendie...). Sans elle, tu es personnellement responsable sur ton patrimoine. Cette garantie est obligatoire pour les locataires.",
+          fullDescription: "La responsabilité civile te protège lorsque tu causes des dommages aux autres dans ta vie de tous les jours (dégât des eaux chez le voisin, objet qui tombe du balcon, enfant qui casse quelque chose...). Sans elle, tu es personnellement responsable sur ton patrimoine. Cette garantie est obligatoire pour les locataires.",
         },
         savingsImpact: null,
       };
@@ -33,7 +33,7 @@ export class ResponsabiliteCivileStrategy implements IStrategy {
       insight: {
         title: "Responsabilité civile couverte",
         description: "Tu es protégé si tu causes des dommages à des tiers.",
-        fullDescription: "Ta responsabilité civile habitation te protège en cas de dommages causés à autrui depuis ton logement. Vérifie le plafond de couverture (généralement 1 à 6 millions d'euros).",
+        fullDescription: "Ta responsabilité civile habitation te protège lorsque tu causes des dommages aux autres dans ta vie quotidienne (depuis ton logement ou dans tes activités de tous les jours). Vérifie le plafond de couverture (généralement 1 à 6 millions d'euros).",
       },
       savingsImpact: null,
     };

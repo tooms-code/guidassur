@@ -1,108 +1,66 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  AuthResponseDto,
-  MeResponseDto,
-  LoginRequestDto,
-  RegisterRequestDto,
-  UserDto,
-} from "@/backend/application/dtos/auth.dto";
+import { useCurrentUser, useLogin, useRegister, useLogout, useMFAChallenge } from "@/frontend/queries/auth";
 
 type OAuthProvider = "google" | "facebook";
 
-// API functions
-async function fetchCurrentUser(): Promise<UserDto | null> {
-  const response = await fetch("/api/auth/me");
-  if (!response.ok) return null;
-  const data: MeResponseDto = await response.json();
-  return data.user;
+interface SignInSuccessResult {
+  success: true;
+  mfaRequired?: false;
 }
 
-async function loginUser(credentials: LoginRequestDto): Promise<AuthResponseDto> {
-  const response = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(credentials),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Erreur de connexion");
-  }
-
-  return response.json();
+interface SignInMFAResult {
+  success: true;
+  mfaRequired: true;
+  factorId: string;
 }
 
-async function registerUser(data: RegisterRequestDto): Promise<AuthResponseDto> {
-  const response = await fetch("/api/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Erreur d'inscription");
-  }
-
-  return response.json();
+interface SignInErrorResult {
+  success: false;
+  error: string;
 }
 
-async function logoutUser(): Promise<void> {
-  await fetch("/api/auth/logout", { method: "POST" });
-}
+type SignInResult = SignInSuccessResult | SignInMFAResult | SignInErrorResult;
 
-// Hook
+/**
+ * Unified auth hook that wraps query hooks with convenience methods
+ */
 export function useAuth() {
-  const queryClient = useQueryClient();
+  const { data: user, isLoading: isUserLoading, error: queryError } = useCurrentUser();
+  const loginMutation = useLogin();
+  const registerMutation = useRegister();
+  const logoutMutation = useLogout();
+  const mfaChallengeMutation = useMFAChallenge();
 
-  // Query for current user
-  const {
-    data: user,
-    isLoading,
-    error: queryError,
-  } = useQuery({
-    queryKey: ["auth", "user"],
-    queryFn: fetchCurrentUser,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false,
-  });
-
-  // Login mutation
-  const loginMutation = useMutation({
-    mutationFn: loginUser,
-    onSuccess: (data) => {
-      queryClient.setQueryData(["auth", "user"], data.user);
-    },
-  });
-
-  // Register mutation
-  const registerMutation = useMutation({
-    mutationFn: registerUser,
-    onSuccess: (data) => {
-      queryClient.setQueryData(["auth", "user"], data.user);
-    },
-  });
-
-  // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: logoutUser,
-    onSuccess: () => {
-      queryClient.setQueryData(["auth", "user"], null);
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
-    },
-  });
-
-  // Actions
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<SignInResult> => {
     try {
-      await loginMutation.mutateAsync({ email, password });
+      const result = await loginMutation.mutateAsync({ email, password });
+
+      if (result.mfaRequired && result.factorId) {
+        return {
+          success: true,
+          mfaRequired: true,
+          factorId: result.factorId,
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Erreur de connexion",
+      };
+    }
+  };
+
+  const verifyMFALogin = async (factorId: string, code: string) => {
+    try {
+      await mfaChallengeMutation.mutateAsync({ factorId, code });
       return { success: true as const };
     } catch (error) {
       return {
         success: false as const,
-        error: error instanceof Error ? error.message : "Erreur de connexion",
+        error: error instanceof Error ? error.message : "Code invalide",
       };
     }
   };
@@ -131,23 +89,25 @@ export function useAuth() {
   const clearError = () => {
     loginMutation.reset();
     registerMutation.reset();
+    mfaChallengeMutation.reset();
   };
 
-  // Derived error state
   const error =
     loginMutation.error?.message ||
     registerMutation.error?.message ||
+    mfaChallengeMutation.error?.message ||
     (queryError instanceof Error ? queryError.message : null);
 
   return {
     user: user || null,
-    isLoading:
-      isLoading || loginMutation.isPending || registerMutation.isPending,
+    isLoading: isUserLoading || loginMutation.isPending || registerMutation.isPending || mfaChallengeMutation.isPending,
+    isMFALoading: mfaChallengeMutation.isPending,
     error,
     signIn,
     signUp,
     signInWithProvider,
     signOut,
+    verifyMFALogin,
     clearError,
   };
 }

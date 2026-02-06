@@ -6,8 +6,10 @@ import { AssistanceStrategy } from "./AssistanceStrategy";
 import { VehiculeRemplacementStrategy } from "./VehiculeRemplacementStrategy";
 import { ProtectionJuridiqueStrategy } from "./ProtectionJuridiqueStrategy";
 import { PrimeCreditStrategy } from "./PrimeCreditStrategy";
+import { PrixAgeVehiculeStrategy } from "./PrixAgeVehiculeStrategy";
 
 export const autoStrategies: IStrategy[] = [
+  new PrixAgeVehiculeStrategy(),
   new FranchiseStrategy(),
   new BrisGlaceStrategy(),
   new VolIncendieStrategy(),

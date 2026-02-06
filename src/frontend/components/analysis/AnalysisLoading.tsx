@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Shield, FileSearch, Brain, CheckCircle } from "lucide-react";
+import { FileSearch, Brain, Shield, CheckCircle } from "lucide-react";
+import Image from "next/image";
 
 const steps = [
   { icon: FileSearch, label: "Lecture de tes réponses", delay: 0 },
@@ -32,7 +33,13 @@ export function AnalysisLoading() {
             transition={{ delay: 0.3, type: "spring" }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <Shield className="w-8 h-8 text-emerald-500" />
+            <Image
+              src="/assets/logo.svg"
+              alt="Guidassur"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
           </motion.div>
         </div>
 

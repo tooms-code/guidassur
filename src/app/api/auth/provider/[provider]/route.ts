@@ -1,59 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { authService } from "@/backend/application/services/AuthService";
-import { AuthProvider } from "@/backend/domain/interfaces/IAuthProvider";
+import { AuthProvider, AuthError } from "@/backend/domain/interfaces/IAuthProvider";
+import { ErrorResponseDto } from "@/backend/application/dtos/auth.dto";
+import { logger } from "@/backend/infrastructure/utils/logger";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ provider: string }> }
 ) {
-  try {
-    const { provider } = await params;
+  const { provider } = await params;
 
+  try {
     if (provider !== "google" && provider !== "facebook") {
-      return NextResponse.json(
-        { error: "Provider non supporté" },
-        { status: 400 }
-      );
+      const error: ErrorResponseDto = { error: "Provider non supporté" };
+      return NextResponse.json(error, { status: 400 });
     }
 
     const result = await authService.signInWithProvider(provider as AuthProvider);
 
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error.message },
-        { status: 400 }
-      );
+    // The OAuth URL is returned in accessToken by the provider
+    const oauthUrl = result.session.accessToken;
+
+    if (!oauthUrl) {
+      throw new Error("OAuth URL not returned");
     }
 
-    // For stub: sign in directly and redirect to dashboard
-    // For Supabase: would redirect to OAuth provider URL
-    const cookieStore = await cookies();
-
-    cookieStore.set("access_token", result.session.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 3600,
-      path: "/",
-    });
-
-    cookieStore.set("refresh_token", result.session.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
-
-    // Redirect to dashboard after successful login
-    const redirectUrl = new URL("/compte", request.url);
-    return NextResponse.redirect(redirectUrl);
+    // Redirect to OAuth provider - Supabase handles the rest
+    return NextResponse.redirect(oauthUrl);
   } catch (error) {
-    console.error("OAuth error:", error);
-    return NextResponse.json(
-      { error: "Erreur interne du serveur" },
-      { status: 500 }
-    );
+    if (error instanceof AuthError) {
+      const errorDto: ErrorResponseDto = { error: error.message, code: error.code };
+      return NextResponse.json(errorDto, { status: 400 });
+    }
+    logger.error("OAuth error", error, { provider });
+    const errorDto: ErrorResponseDto = { error: "Erreur interne du serveur" };
+    return NextResponse.json(errorDto, { status: 500 });
   }
 }

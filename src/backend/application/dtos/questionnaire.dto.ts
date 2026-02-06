@@ -3,10 +3,12 @@ import {
   Progress,
   InsuranceType,
 } from "@/shared/types/questionnaire";
+import { AnalysisPublicDto } from "./analysis.dto";
 
 // Request DTOs
 export interface StartQuestionnaireRequestDto {
   type: InsuranceType;
+  initialPrice?: number; // Prix annuel renseigné au début du questionnaire
 }
 
 export interface AnswerQuestionRequestDto {
@@ -35,7 +37,7 @@ export interface QuestionDto {
   label: string;
   tip: { text: string; icon?: string } | null;
   required: boolean;
-  options?: { value: string; label: string }[];
+  options?: { value: string; label: string; tooltip?: string }[];
   unit?: string;
   placeholder?: string;
   min?: number;
@@ -72,35 +74,22 @@ export interface CompleteQuestionnaireResponseDto {
   analysisId: string;
   insuranceType: string;
   answers: Record<string, unknown>;
-  analysis: {
-    id: string;
-    sessionId: string;
-    insuranceType: string;
-    score: number;
-    scoreLabel: string;
-    freeInsights: Array<{
-      id: string;
-      strategyId: string;
-      category: string;
-      status: string;
-      priority: string;
-      title: string;
-      description: string;
-      fullDescription: string | null;
-      savingsMin: number | null;
-      savingsMax: number | null;
-      isFree: boolean;
-    }>;
-    lockedInsightsCount: number;
-    potentialSavingsMin: number;
-    potentialSavingsMax: number;
-    createdAt: string;
-  };
+  analysis: AnalysisPublicDto;
 }
 
 export interface SaveDraftResponseDto {
-  success: boolean;
   draftId: string;
+}
+
+export interface ResumeQuestionnaireRequestDto {
+  sessionId: string;
+}
+
+export interface ResumeQuestionnaireResponseDto {
+  sessionId: string;
+  type: InsuranceType;
+  question: QuestionDto;
+  progress: ProgressDto;
 }
 
 // Mappers

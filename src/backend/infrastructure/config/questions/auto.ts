@@ -3,19 +3,6 @@ import { QuestionConfig } from "@/shared/types/questionnaire";
 export const autoQuestions: QuestionConfig[] = [
   // Step: Ton contrat
   {
-    id: "prime_annuelle",
-    step: "Ton contrat",
-    type: "number",
-    label: "Combien paies-tu par an pour ton assurance auto ?",
-    unit: "€",
-    required: true,
-    placeholder: "850",
-    tip: {
-      text: "Tu le trouves sur ton échéancier ou ton espace client. C'est le montant total que tu paies sur l'année.",
-      icon: "info",
-    },
-  },
-  {
     id: "franchise",
     step: "Ton contrat",
     type: "number",
@@ -35,12 +22,24 @@ export const autoQuestions: QuestionConfig[] = [
     label: "Quelle est ta formule d'assurance ?",
     required: true,
     options: [
-      { value: "tiers", label: "Tiers" },
-      { value: "tiers_plus", label: "Tiers+" },
-      { value: "tous_risques", label: "Tous risques" },
+      {
+        value: "tiers",
+        label: "Tiers",
+        tooltip: "Couverture minimale légale : dommages causés aux autres uniquement. Ton véhicule n'est pas couvert."
+      },
+      {
+        value: "tiers_plus",
+        label: "Tiers+",
+        tooltip: "Tiers + certaines garanties comme le vol, l'incendie ou le bris de glace selon le contrat."
+      },
+      {
+        value: "tous_risques",
+        label: "Tous risques",
+        tooltip: "Couverture maximale : dommages aux autres ET à ton véhicule, même si tu es responsable."
+      },
     ],
     tip: {
-      text: "Tiers = minimum légal (dommages aux autres). Tous risques = tu es couvert même si tu es responsable.",
+      text: "Tiers = minimum légal (dommages causés aux autres uniquement). Tiers+ = Tiers + certaines garanties comme le vol ou l'incendie. Tous risques = couverture maximale, même si tu es responsable de l'accident.",
       icon: "info",
     },
   },
@@ -51,14 +50,46 @@ export const autoQuestions: QuestionConfig[] = [
     label: "Quelles garanties as-tu dans ton contrat ?",
     required: false,
     options: [
-      { value: "bris_glace", label: "Bris de glace" },
-      { value: "vol", label: "Vol" },
-      { value: "incendie", label: "Incendie" },
-      { value: "assistance_0km", label: "Assistance 0km" },
-      { value: "vehicule_remplacement", label: "Véhicule de remplacement" },
-      { value: "protection_juridique", label: "Protection juridique" },
-      { value: "panne_mecanique", label: "Panne mécanique" },
-      { value: "contenu_vehicule", label: "Contenu du véhicule" },
+      {
+        value: "bris_glace",
+        label: "Bris de glace",
+        tooltip: "Couvre le remplacement/réparation du pare-brise, vitres et rétroviseurs"
+      },
+      {
+        value: "vol",
+        label: "Vol",
+        tooltip: "Indemnisation en cas de vol total ou partiel du véhicule"
+      },
+      {
+        value: "incendie",
+        label: "Incendie",
+        tooltip: "Couvre les dommages causés par un incendie ou une explosion"
+      },
+      {
+        value: "assistance_0km",
+        label: "Assistance 0km",
+        tooltip: "Dépannage/remorquage même devant chez toi (sinon souvent à partir de 50km du domicile)"
+      },
+      {
+        value: "vehicule_remplacement",
+        label: "Véhicule de remplacement",
+        tooltip: "Véhicule de prêt pendant la réparation ou après un accident"
+      },
+      {
+        value: "protection_juridique",
+        label: "Protection juridique",
+        tooltip: "Aide juridique et prise en charge des frais en cas de litige"
+      },
+      {
+        value: "panne_mecanique",
+        label: "Panne mécanique",
+        tooltip: "Couvre les pannes mécaniques (moteur, boîte de vitesses, etc.)"
+      },
+      {
+        value: "contenu_vehicule",
+        label: "Contenu du véhicule",
+        tooltip: "Indemnisation des objets volés dans le véhicule"
+      },
     ],
     tip: {
       text: "Coche les garanties présentes dans ton contrat. Si tu ne sais pas, vérifie tes conditions particulières.",
@@ -90,9 +121,30 @@ export const autoQuestions: QuestionConfig[] = [
     options: [
       { value: "citadine", label: "Citadine" },
       { value: "berline", label: "Berline" },
-      { value: "suv", label: "SUV" },
+      { value: "suv", label: "SUV / 4x4" },
+      { value: "utilitaire", label: "Utilitaire" },
+      { value: "sportive", label: "Sportive" },
       { value: "moto", label: "Moto" },
+      { value: "scooter", label: "Scooter" },
+      { value: "camping_car", label: "Camping-car" },
     ],
+  },
+  {
+    id: "puissance_vehicule",
+    step: "Ton véhicule",
+    type: "single-choice",
+    label: "Quelle est la puissance fiscale de ton véhicule ?",
+    required: true,
+    options: [
+      { value: "moins_5cv", label: "Moins de 5 CV" },
+      { value: "5_7cv", label: "5 à 7 CV" },
+      { value: "8_10cv", label: "8 à 10 CV" },
+      { value: "plus_10cv", label: "Plus de 10 CV" },
+    ],
+    tip: {
+      text: "La puissance fiscale est indiquée sur ta carte grise (case P.6). Plus elle est élevée, plus la prime est généralement importante.",
+      icon: "info",
+    },
   },
   {
     id: "annee_circulation",
@@ -200,7 +252,7 @@ export const autoQuestions: QuestionConfig[] = [
     max: 80,
     placeholder: "10",
     tip: {
-      text: "Après 3 ans sans sinistre responsable, tu n'es plus considéré comme jeune conducteur.",
+      text: "Compte depuis l'obtention du permis (tu peux inclure la conduite accompagnée si applicable). Après 3 ans sans sinistre responsable, tu n'es plus considéré comme jeune conducteur.",
       icon: "lightbulb",
     },
   },
@@ -211,7 +263,7 @@ export const autoQuestions: QuestionConfig[] = [
     label: "Y a-t-il des conducteurs secondaires déclarés ?",
     required: true,
     tip: {
-      text: "Un conducteur non déclaré qui a un accident = potentiel refus de prise en charge.",
+      text: "Un conducteur non déclaré et jeune permis qui a un accident peut entraîner l'application d'une surfranchise.",
       icon: "alert",
     },
   },

@@ -1,6 +1,8 @@
+"use client";
+
 import { Car, Home, Heart, Shield } from "lucide-react";
-import Link from "next/link";
 import { InsuranceType, insuranceLabels } from "@/shared/types/insurance";
+import { motion } from "motion/react";
 
 const insuranceConfig = [
   { type: InsuranceType.AUTO, icon: Car },
@@ -13,16 +15,27 @@ export function InsurancePills() {
   return (
     <section className="py-12">
       <div className="max-w-5xl mx-auto px-6">
-        <div className="flex flex-wrap justify-center gap-4">
-          {insuranceConfig.map(({ type, icon: Icon }) => (
-            <Link
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-sm text-gray-400 text-center mb-5"
+        >
+          Types d'assurance pris en charge
+        </motion.p>
+        <div className="flex flex-wrap justify-center gap-3">
+          {insuranceConfig.map(({ type, icon: Icon }, index) => (
+            <motion.div
               key={type}
-              href={`/questionnaire/${type}`}
-              className="flex items-center gap-3 px-6 py-4 border border-gray-200 rounded-lg hover:border-emerald-500 transition-colors duration-150"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.05 }}
+              className="flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 rounded-full"
             >
-              <Icon size={20} className="text-gray-400" strokeWidth={1.5} />
-              <span className="text-sm text-gray-700">{insuranceLabels[type]}</span>
-            </Link>
+              <Icon size={16} className="text-gray-400" strokeWidth={1.5} />
+              <span className="text-sm text-gray-600">{insuranceLabels[type]}</span>
+            </motion.div>
           ))}
         </div>
       </div>

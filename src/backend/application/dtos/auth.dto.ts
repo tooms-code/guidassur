@@ -19,11 +19,14 @@ export interface UserDto {
   fullName: string | null;
   credits: number;
   createdAt: number;
+  emailVerified: boolean;
 }
 
 export interface AuthResponseDto {
   user: UserDto;
   expiresAt: number;
+  mfaRequired?: boolean;
+  factorId?: string;
 }
 
 export interface MeResponseDto {
@@ -43,6 +46,7 @@ export function toUserDto(user: User): UserDto {
     fullName: user.fullName || null,
     credits: user.credits ?? 0,
     createdAt: user.createdAt,
+    emailVerified: user.emailVerified ?? false,
   };
 }
 

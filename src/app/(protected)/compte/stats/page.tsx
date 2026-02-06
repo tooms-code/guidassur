@@ -2,26 +2,17 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowLeft, Car, Home, Shield, Heart, PiggyBank, FileText, Unlock, TrendingUp } from "lucide-react";
-import { useUserStats } from "@/frontend/hooks/useUser";
-import { InsuranceType } from "@/shared/types/insurance";
-
-const insuranceIcons: Record<InsuranceType, typeof Car> = {
-  [InsuranceType.AUTO]: Car,
-  [InsuranceType.HABITATION]: Home,
-  [InsuranceType.GAV]: Shield,
-  [InsuranceType.MUTUELLE]: Heart,
-};
+import { ArrowLeft, PiggyBank, FileText, Unlock, TrendingUp } from "lucide-react";
+import { useUserStats } from "@/frontend/queries/user";
+import { insuranceIcons } from "@/frontend/constants/insurance";
+import { formatPriceRange } from "@/frontend/lib/format";
+import { SpinnerPage } from "@/frontend/components/ui/Spinner";
 
 export default function StatsPage() {
   const { data: stats, isLoading } = useUserStats();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <SpinnerPage />;
   }
 
   const savingsMin = stats?.totalPotentialSavingsMin || 0;
@@ -51,52 +42,60 @@ export default function StatsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="p-6 bg-white rounded-xl border border-gray-200"
+            className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200"
           >
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-              <FileText className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
+              <FileText className="w-5 h-5 text-emerald-600" />
             </div>
-            <p className="text-2xl font-semibold text-gray-900">{stats?.totalAnalyses || 0}</p>
-            <p className="text-sm text-gray-500">Analyses totales</p>
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">{stats?.totalAnalyses || 0}</p>
+              <p className="text-xs text-gray-500">Analyses totales</p>
+            </div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="p-6 bg-white rounded-xl border border-gray-200"
+            className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200"
           >
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
               <Unlock className="w-5 h-5 text-emerald-600" />
             </div>
-            <p className="text-2xl font-semibold text-gray-900">{stats?.unlockedAnalyses || 0}</p>
-            <p className="text-sm text-gray-500">Débloquées</p>
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">{stats?.unlockedAnalyses || 0}</p>
+              <p className="text-xs text-gray-500">Débloquées</p>
+            </div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="p-6 bg-white rounded-xl border border-gray-200"
+            className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200"
           >
-            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-              <TrendingUp className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
             </div>
-            <p className="text-2xl font-semibold text-gray-900">{stats?.averageScore || 0}/100</p>
-            <p className="text-sm text-gray-500">Score moyen</p>
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">{stats?.averageScore || 0}/100</p>
+              <p className="text-xs text-gray-500">Score moyen</p>
+            </div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="p-6 bg-white rounded-xl border border-gray-200"
+            className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200"
           >
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
               <PiggyBank className="w-5 h-5 text-emerald-600" />
             </div>
-            <p className="text-2xl font-semibold text-gray-900">{savingsMin}€ - {savingsMax}€</p>
-            <p className="text-sm text-gray-500">Économies /an</p>
+            <div>
+              <p className="text-xl font-semibold text-gray-900">{formatPriceRange(savingsMin, savingsMax)}</p>
+              <p className="text-xs text-gray-500">Économies /an</p>
+            </div>
           </motion.div>
         </div>
 
@@ -117,7 +116,7 @@ export default function StatsPage() {
                   Économies potentielles identifiées sur vos contrats
                 </p>
                 <p className="text-4xl font-semibold text-emerald-600">
-                  {savingsMin}€ - {savingsMax}€
+                  {formatPriceRange(savingsMin, savingsMax)}
                   <span className="text-lg font-normal text-emerald-500 ml-2">/an</span>
                 </p>
               </div>
@@ -144,9 +143,9 @@ export default function StatsPage() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.5 + index * 0.05 }}
-                  className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl"
+                  className="flex items-center gap-3 p-4 rounded-xl border border-gray-200"
                 >
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
                     <Icon className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>

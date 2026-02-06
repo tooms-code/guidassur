@@ -7,6 +7,7 @@ import {
 } from "@/backend/domain/entities/AnalysisResult";
 import { Insight, InsightCategory } from "@/backend/domain/entities/Insight";
 import { InsuranceType } from "@/shared/types/insurance";
+import { generateId } from "@/backend/infrastructure/utils/id";
 
 class AnalysisEngine implements IAnalysisEngine {
   constructor(private registry: IStrategyRegistry) {}
@@ -14,7 +15,8 @@ class AnalysisEngine implements IAnalysisEngine {
   analyze(
     sessionId: string,
     insuranceType: InsuranceType,
-    answers: Record<string, unknown>
+    answers: Record<string, unknown>,
+    existingId?: string
   ): AnalysisResult {
     const strategies = this.registry.getStrategies(insuranceType);
     const insights: Insight[] = [];
@@ -39,7 +41,7 @@ class AnalysisEngine implements IAnalysisEngine {
       // DANGER = 0 points
 
       const insight: Insight = {
-        id: `insight_${Math.random().toString(36).substr(2, 9)}`,
+        id: generateId(),
         strategyId: strategy.id,
         category: strategy.category,
         status: result.status,
@@ -62,7 +64,7 @@ class AnalysisEngine implements IAnalysisEngine {
     // Calculate savings
     const { totalSavings, savingsBreakdown } = this.calculateSavings(sortedInsights);
 
-    const analysisId = `analysis_${Math.random().toString(36).substr(2, 12)}`;
+    const analysisId = existingId || generateId();
 
     return {
       id: analysisId,
@@ -74,6 +76,7 @@ class AnalysisEngine implements IAnalysisEngine {
       totalSavings,
       savingsBreakdown,
       createdAt: Date.now(),
+      isUnlocked: false,
     };
   }
 
@@ -136,5 +139,5 @@ class AnalysisEngine implements IAnalysisEngine {
   }
 }
 
-import { registry } from "@/backend/infrastructure/strategies";
-export const analysisEngine = new AnalysisEngine(registry);
+// Export class for injection - instance created in infrastructure/factories
+export { AnalysisEngine };

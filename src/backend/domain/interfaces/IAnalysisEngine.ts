@@ -5,6 +5,7 @@ export interface IAnalysisEngine {
   analyze(
     sessionId: string,
     insuranceType: InsuranceType,
-    answers: Record<string, unknown>
+    answers: Record<string, unknown>,
+    existingId?: string
   ): AnalysisResult;
 }

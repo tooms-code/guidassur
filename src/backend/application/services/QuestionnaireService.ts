@@ -1,25 +1,22 @@
 import {
   IQuestionnaireService,
+  StartParams,
   StartResult,
   NextResult,
   PrevResult,
   CompleteResult,
   SaveDraftResult,
+  GetUserDraftsResult,
+  ResumeResult,
 } from "@/backend/domain/interfaces/IQuestionnaireService";
-import { InsuranceType } from "@/shared/types/questionnaire";
-
-// Import the stub provider - will be swapped for real implementation later
-import { questionnaireService as questionnaireProvider } from "@/backend/infrastructure/stubs/StubQuestionnaireService";
+import { QuestionnaireSession } from "@/backend/domain/entities/QuestionnaireSession";
+import { getQuestionnaireServiceProvider } from "@/backend/infrastructure/providers";
 
 class QuestionnaireService implements IQuestionnaireService {
-  private provider: IQuestionnaireService;
+  private provider = getQuestionnaireServiceProvider();
 
-  constructor(provider: IQuestionnaireService) {
-    this.provider = provider;
-  }
-
-  async start(type: InsuranceType): Promise<StartResult> {
-    return this.provider.start(type);
+  async start(params: StartParams): Promise<StartResult> {
+    return this.provider.start(params);
   }
 
   async next(
@@ -41,6 +38,26 @@ class QuestionnaireService implements IQuestionnaireService {
   async saveDraft(sessionId: string, email?: string): Promise<SaveDraftResult> {
     return this.provider.saveDraft(sessionId, email);
   }
+
+  async deleteDraft(draftId: string, userId: string): Promise<void> {
+    return this.provider.deleteDraft(draftId, userId);
+  }
+
+  async abandonSession(sessionId: string): Promise<void> {
+    return this.provider.abandonSession(sessionId);
+  }
+
+  async getUserDrafts(userId: string): Promise<GetUserDraftsResult> {
+    return this.provider.getUserDrafts(userId);
+  }
+
+  async getSession(sessionId: string): Promise<QuestionnaireSession | null> {
+    return this.provider.getSession(sessionId);
+  }
+
+  async resume(sessionId: string, userId?: string): Promise<ResumeResult> {
+    return this.provider.resume(sessionId, userId);
+  }
 }
 
-export const questionnaireService = new QuestionnaireService(questionnaireProvider);
+export const questionnaireService = new QuestionnaireService();

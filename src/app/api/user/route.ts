@@ -1,26 +1,61 @@
-import { NextRequest, NextResponse } from "next/server";
-import { withAuth, AuthContext } from "@/backend/application/guards/AuthGuard";
+import { NextResponse } from "next/server";
+import { createAuthHandler, RateLimit } from "@/backend/infrastructure/api/handler";
 import { userService } from "@/backend/application/services/UserService";
+import { authService } from "@/backend/application/services/AuthService";
+import { ErrorResponseDto } from "@/backend/application/dtos/auth.dto";
+import { DeleteAccountRequestDto } from "@/backend/application/dtos/user.dto";
+import { AuthError } from "@/backend/domain/interfaces/IAuthProvider";
+import { logger } from "@/backend/infrastructure/utils/logger";
 
-async function handler(request: NextRequest, context: AuthContext) {
-  try {
-    const result = await userService.deleteAccount(context.user.id);
+export const DELETE = createAuthHandler(
+  async (request, { user }) => {
+    try {
+      const body: DeleteAccountRequestDto = await request.json().catch(() => ({}));
 
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 400 }
-      );
+      if (!body.password) {
+        const errorDto: ErrorResponseDto = { error: "Mot de passe requis pour confirmer la suppression" };
+        return NextResponse.json(errorDto, { status: 400 });
+      }
+
+      // Verify password before deletion
+      const isValid = await authService.verifyPassword(body.password);
+      if (!isValid) {
+        const errorDto: ErrorResponseDto = { error: "Mot de passe incorrect" };
+        return NextResponse.json(errorDto, { status: 401 });
+      }
+
+      // Check if MFA is enabled
+      const mfaStatus = await authService.getMFAStatus();
+      if (mfaStatus.enabled && mfaStatus.factorId) {
+        // MFA is enabled, require code
+        if (!body.mfaCode) {
+          const errorDto: ErrorResponseDto = {
+            error: "Code MFA requis pour supprimer le compte",
+            code: "mfa_required",
+          };
+          return NextResponse.json(errorDto, { status: 403 });
+        }
+
+        // Verify MFA code
+        try {
+          await authService.challengeMFA(mfaStatus.factorId, body.mfaCode);
+        } catch (error) {
+          if (error instanceof AuthError && error.code === "invalid_code") {
+            const errorDto: ErrorResponseDto = { error: "Code MFA invalide", code: "invalid_mfa_code" };
+            return NextResponse.json(errorDto, { status: 401 });
+          }
+          throw error;
+        }
+      }
+
+      await userService.deleteAccount(user.id);
+
+      return new NextResponse(null, { status: 204 });
+    } catch (error) {
+      logger.error("Error deleting account", error, { userId: user.id });
+      const errorDto: ErrorResponseDto = { error: "Erreur lors de la suppression du compte" };
+      return NextResponse.json(errorDto, { status: 500 });
     }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting account:", error);
-    return NextResponse.json(
-      { error: "Erreur lors de la suppression du compte" },
-      { status: 500 }
-    );
-  }
-}
-
-export const DELETE = withAuth(handler);
+  },
+  { rateLimit: RateLimit.AUTH, csrf: true }
+);

@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { Check } from "lucide-react";
 import { QuestionDto } from "@/backend/application/dtos/questionnaire.dto";
 import { Button } from "@/frontend/components/ui/button";
+import { Tooltip } from "@/frontend/components/ui/Tooltip";
 
 interface MultiChoiceProps {
   question: QuestionDto;
@@ -45,7 +46,7 @@ export function MultiChoice({ question, onAnswer }: MultiChoiceProps) {
               transition={{ delay: index * 0.03 }}
               onClick={() => toggleOption(option.value)}
               className={`
-                w-full flex items-center justify-between p-4 rounded-xl border-2 text-left
+                w-full flex items-center justify-between p-4 rounded-xl border text-left
                 transition-all duration-150
                 ${
                   isSelected
@@ -55,15 +56,16 @@ export function MultiChoice({ question, onAnswer }: MultiChoiceProps) {
               `}
             >
               <span
-                className={`font-medium ${
+                className={`font-medium flex items-center ${
                   isSelected ? "text-emerald-700" : "text-gray-700"
                 }`}
               >
                 {option.label}
+                {option.tooltip && <Tooltip content={option.tooltip} />}
               </span>
               <div
                 className={`
-                  w-6 h-6 rounded-md border-2 flex items-center justify-center
+                  w-5 h-5 rounded border flex items-center justify-center
                   transition-all duration-150
                   ${
                     isSelected

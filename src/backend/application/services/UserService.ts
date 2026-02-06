@@ -5,13 +5,13 @@ import {
   UpdateProfileParams,
 } from "@/backend/domain/interfaces/IUserService";
 import { UserStats, UserSettings } from "@/backend/domain/entities/UserAnalysis";
-import { stubUserService } from "@/backend/infrastructure/stubs/StubUserService";
+import { getUserServiceProvider } from "@/backend/infrastructure/providers";
 
 class UserService implements IUserService {
   private provider: IUserService;
 
-  constructor(provider: IUserService) {
-    this.provider = provider;
+  constructor() {
+    this.provider = getUserServiceProvider();
   }
 
   async getAnalyses(params: GetAnalysesParams): Promise<GetAnalysesResult> {
@@ -30,9 +30,22 @@ class UserService implements IUserService {
     return this.provider.updateProfile(params);
   }
 
-  async deleteAccount(userId: string): Promise<{ success: boolean; error?: string }> {
+  async deleteAccount(userId: string): Promise<void> {
     return this.provider.deleteAccount(userId);
+  }
+
+  // Credits management
+  async getCredits(userId: string): Promise<number> {
+    return this.provider.getCredits(userId);
+  }
+
+  async addCredits(userId: string, amount: number): Promise<number> {
+    return this.provider.addCredits(userId, amount);
+  }
+
+  async useCredit(userId: string): Promise<{ success: boolean; remaining: number }> {
+    return this.provider.useCredit(userId);
   }
 }
 
-export const userService = new UserService(stubUserService);
+export const userService = new UserService();

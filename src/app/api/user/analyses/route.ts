@@ -7,6 +7,7 @@ import {
 } from "@/backend/application/dtos/user.dto";
 import { InsuranceType } from "@/shared/types/insurance";
 import { AnalysisSortField, SortOrder } from "@/backend/domain/interfaces/IUserService";
+import { logger } from "@/backend/infrastructure/utils/logger";
 
 async function handler(request: NextRequest, context: AuthContext) {
   try {
@@ -30,14 +31,16 @@ async function handler(request: NextRequest, context: AuthContext) {
     });
 
     const response: GetAnalysesResponseDto = {
-      analyses: result.analyses.map(mapUserAnalysisToDto),
+      data: result.analyses.map(mapUserAnalysisToDto),
       total: result.total,
+      limit: result.limit,
+      offset: result.offset,
       hasMore: result.hasMore,
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Error fetching user analyses:", error);
+    logger.error("Error fetching user analyses", error, { userId: context.user.id });
     return NextResponse.json(
       { error: "Erreur lors de la récupération des analyses" },
       { status: 500 }

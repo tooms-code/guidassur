@@ -35,7 +35,7 @@ export function YesNo({ question, onAnswer }: YesNoProps) {
         onClick={() => handleSelect(true)}
         disabled={isSubmitting}
         className={`
-          flex-1 py-5 rounded-xl border-2 font-semibold text-lg
+          flex-1 py-5 rounded-xl border font-semibold text-lg
           transition-all duration-150
           ${
             selected === true
@@ -53,7 +53,7 @@ export function YesNo({ question, onAnswer }: YesNoProps) {
         onClick={() => handleSelect(false)}
         disabled={isSubmitting}
         className={`
-          flex-1 py-5 rounded-xl border-2 font-semibold text-lg
+          flex-1 py-5 rounded-xl border font-semibold text-lg
           transition-all duration-150
           ${
             selected === false

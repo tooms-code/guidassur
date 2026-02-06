@@ -15,15 +15,24 @@ export class ResteAChargeStrategy implements IStrategy {
     const primeAnnuelle = Number(answers.prime_annuelle) || 0;
 
     if (resteACharge > 500) {
+      // Calcul du surcoût annuel d'une meilleure mutuelle : 70-100€/mois = 840-1200€/an
+      const surcoutMin = 70 * 12; // 840€
+      const surcoutMax = 100 * 12; // 1200€
+
+      // On ne montre des économies que si le reste à charge dépasse le surcoût
+      const netSavingsMin = resteACharge - surcoutMax;
+      const netSavingsMax = resteACharge - surcoutMin;
+      const hasSavings = netSavingsMax > 0;
+
       return {
         status: "DANGER",
         priority: "P1",
         insight: {
           title: "Reste à charge trop élevé",
           description: `Tu paies ${resteACharge}€ de reste à charge par an en plus de ta cotisation.`,
-          fullDescription: `Avec ${resteACharge}€ de frais non remboursés, ta mutuelle ne remplit pas son rôle. Une meilleure couverture coûterait peut-être 10-20€/mois de plus mais réduirait drastiquement ces frais.`,
+          fullDescription: `Avec ${resteACharge}€ de frais non remboursés, ta mutuelle ne remplit pas son rôle. Une meilleure couverture coûterait entre 70-100€/mois de plus mais réduirait drastiquement ces frais. Compare ce surcoût (${surcoutMin}-${surcoutMax}€/an) au reste à charge actuel pour voir si c'est rentable.`,
         },
-        savingsImpact: { min: 200, max: 400 },
+        savingsImpact: hasSavings ? { min: Math.max(0, netSavingsMin), max: netSavingsMax } : null,
       };
     }
 

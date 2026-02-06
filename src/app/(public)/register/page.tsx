@@ -1,17 +1,33 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { AuthLayout } from "@/frontend/components/auth/AuthLayout";
 import { SocialButtons } from "@/frontend/components/auth/SocialButtons";
 import { Divider } from "@/frontend/components/auth/Divider";
 import { RegisterForm } from "@/frontend/components/auth/RegisterForm";
 import { useAuth } from "@/frontend/hooks/useAuth";
-import { AlertCircle } from "lucide-react";
+import { ErrorMessage } from "@/frontend/components/ui/ErrorMessage";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
+  const action = searchParams.get("action");
+  const packageId = searchParams.get("packageId");
   const { signUp, signInWithProvider, isLoading, error, clearError } = useAuth();
+
+  // Build redirect URL with all params preserved
+  const getRedirectUrl = () => {
+    if (!redirect) return "/compte";
+
+    // Build URL with action params if present
+    const url = new URL(redirect, window.location.origin);
+    if (action) url.searchParams.set("action", action);
+    if (packageId) url.searchParams.set("packageId", packageId);
+    return url.pathname + url.search;
+  };
 
   const handleRegister = async (
     email: string,
@@ -21,7 +37,7 @@ export default function RegisterPage() {
     clearError();
     const result = await signUp(email, password, fullName);
     if (result.success) {
-      router.push("/compte");
+      router.push(getRedirectUrl());
     }
   };
 
@@ -29,7 +45,7 @@ export default function RegisterPage() {
     clearError();
     const result = await signInWithProvider("google");
     if (result.success) {
-      router.push("/compte");
+      router.push(getRedirectUrl());
     }
   };
 
@@ -37,21 +53,26 @@ export default function RegisterPage() {
     clearError();
     const result = await signInWithProvider("facebook");
     if (result.success) {
-      router.push("/compte");
+      router.push(getRedirectUrl());
     }
   };
+
+  // Preserve all search params when switching to login
+  const loginUrl = (() => {
+    const params = new URLSearchParams();
+    if (redirect) params.set("redirect", redirect);
+    if (action) params.set("action", action);
+    if (packageId) params.set("packageId", packageId);
+    const queryString = params.toString();
+    return queryString ? `/login?${queryString}` : "/login";
+  })();
 
   return (
     <AuthLayout
       title="Rejoignez Guidassur"
       subtitle="Analysez vos contrats et ne payez plus jamais trop cher"
     >
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm">
-          <AlertCircle size={18} />
-          {error}
-        </div>
-      )}
+      <ErrorMessage message={error} className="mb-4" />
 
       <SocialButtons
         onGoogleClick={handleGoogleRegister}
@@ -66,12 +87,20 @@ export default function RegisterPage() {
       <p className="mt-6 text-center text-sm text-gray-500">
         Déjà un compte ?{" "}
         <Link
-          href="/login"
+          href={loginUrl}
           className="text-emerald-600 hover:text-emerald-700 font-medium"
         >
           Se connecter
         </Link>
       </p>
     </AuthLayout>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<AuthLayout title="Chargement..." subtitle=""><div /></AuthLayout>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

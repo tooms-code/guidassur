@@ -1,40 +1,49 @@
-import { analysisEngine } from "@/backend/application/engine/AnalysisEngine";
 import { AnalysisResult } from "@/backend/domain/entities/AnalysisResult";
 import { InsuranceType } from "@/shared/types/insurance";
-
-// In-memory storage for analyses (will be replaced by database)
-const analysisStore = new Map<string, AnalysisResult>();
+import { getAnalysisService } from "@/backend/infrastructure/providers";
 
 export interface GenerateAnalysisParams {
   sessionId: string;
   insuranceType: InsuranceType;
   answers: Record<string, unknown>;
+  userId?: string;
+  persist?: boolean;
+  existingId?: string;
 }
 
 class AnalysisService {
+  private provider = getAnalysisService();
+
   async generate(params: GenerateAnalysisParams): Promise<AnalysisResult> {
-    const { sessionId, insuranceType, answers } = params;
-
-    // Generate the analysis using the engine
-    const analysis = analysisEngine.analyze(sessionId, insuranceType, answers);
-
-    // Store the analysis
-    analysisStore.set(analysis.id, analysis);
-
-    return analysis;
+    return this.provider.generate(params);
   }
 
   async getById(analysisId: string): Promise<AnalysisResult | null> {
-    return analysisStore.get(analysisId) || null;
+    return this.provider.getById(analysisId);
   }
 
   async getBySessionId(sessionId: string): Promise<AnalysisResult | null> {
-    for (const analysis of analysisStore.values()) {
-      if (analysis.sessionId === sessionId) {
-        return analysis;
-      }
-    }
-    return null;
+    return this.provider.getBySessionId(sessionId);
+  }
+
+  async getUserAnalyses(userId: string): Promise<AnalysisResult[]> {
+    return this.provider.getUserAnalyses(userId);
+  }
+
+  async unlockAnalysis(analysisId: string): Promise<AnalysisResult | null> {
+    return this.provider.unlockAnalysis(analysisId);
+  }
+
+  async saveToUser(
+    analysisId: string,
+    userId: string,
+    answers?: Record<string, unknown>
+  ): Promise<AnalysisResult | null> {
+    return this.provider.saveToUser(analysisId, userId, answers);
+  }
+
+  async isOwnedByUser(analysisId: string, userId: string): Promise<boolean> {
+    return this.provider.isOwnedByUser(analysisId, userId);
   }
 }
 

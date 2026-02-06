@@ -26,17 +26,26 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section id="comment-ca-marche" className="py-16 md:py-24 bg-gray-50 overflow-hidden">
+    <section id="comment-ca-marche" className="py-14 md:py-20 bg-gray-50 overflow-hidden">
       <div className="max-w-3xl mx-auto px-6">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-2xl font-semibold text-gray-900 text-center mb-12 md:mb-20"
+          className="text-2xl font-semibold text-gray-900 text-center mb-4"
         >
           Comment ça marche
         </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="text-gray-500 text-center mb-10 md:mb-16 px-4"
+        >
+          Analysez votre contrat en 3 étapes simples.
+        </motion.p>
 
         <div className="relative">
           {/* Animated flow lines - desktop only */}

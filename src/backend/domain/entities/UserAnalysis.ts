@@ -3,13 +3,14 @@ import { InsuranceType } from "@/shared/types/insurance";
 export interface UserAnalysis {
   id: string;
   insuranceType: InsuranceType;
+  insuranceLabel: string;
   score: number;
   scoreLabel: string;
   isUnlocked: boolean;
   insightsCount: number;
   potentialSavingsMin: number;
   potentialSavingsMax: number;
-  createdAt: number;
+  createdAt: string;
 }
 
 export interface UserStats {
@@ -25,6 +26,7 @@ export interface UserStats {
 export interface UserSettings {
   email: string;
   fullName: string;
+  phone: string;
   twoFactorEnabled: boolean;
   emailNotifications: boolean;
   createdAt: number;

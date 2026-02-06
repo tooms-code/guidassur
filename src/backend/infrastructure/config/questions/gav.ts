@@ -1,21 +1,6 @@
 import { QuestionConfig } from "@/shared/types/questionnaire";
 
 export const gavQuestions: QuestionConfig[] = [
-  // Step: Ton contrat
-  {
-    id: "prime_annuelle",
-    step: "Ton contrat",
-    type: "number",
-    label: "Combien paies-tu par an pour ta GAV ?",
-    unit: "€",
-    required: true,
-    placeholder: "150",
-    tip: {
-      text: "Une GAV coûte généralement entre 100€ et 200€/an pour une bonne couverture.",
-      icon: "info",
-    },
-  },
-
   // Step: Ton profil
   {
     id: "age_assure",
@@ -40,7 +25,7 @@ export const gavQuestions: QuestionConfig[] = [
     required: true,
     placeholder: "1000000",
     tip: {
-      text: "C'est le montant maximum versé en cas d'invalidité totale. Recommandé : au moins 1 million €.",
+      text: "C'est le montant maximum versé en cas d'invalidité totale. Ce capital doit permettre de couvrir les adaptations nécessaires (logement, véhicule, aide à domicile).",
       icon: "lightbulb",
     },
   },
@@ -58,7 +43,7 @@ export const gavQuestions: QuestionConfig[] = [
       { value: "50", label: "50%" },
     ],
     tip: {
-      text: "Plus le seuil est bas, plus tu es couvert tôt. Un seuil à 30% exclut beaucoup de situations.",
+      text: "Le taux minimum d'invalidité est le seuil à partir duquel l'assurance commence à indemniser. Par exemple, avec un seuil de 10%, seules les séquelles évaluées à 10% d'invalidité ou plus seront indemnisées. Un seuil bas (1-5%) offre une meilleure protection.",
       icon: "alert",
     },
   },

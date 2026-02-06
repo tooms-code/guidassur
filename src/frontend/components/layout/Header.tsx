@@ -9,9 +9,8 @@ import { useAuth } from "@/frontend/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
 const navLinks = [
-  { href: "#comment-ca-marche", label: "Comment ça marche" },
-  { href: "#tarifs", label: "Tarifs" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/comprendre", label: "Comprendre" },
+  { href: "/#tarifs", label: "Tarifs" },
 ];
 
 export function Header() {
@@ -26,9 +25,9 @@ export function Header() {
   };
 
   return (
-    <header className="py-4 border-b border-gray-200 relative bg-white">
+    <header className="sticky top-0 z-50 py-4 border-b border-gray-200 bg-white">
       <div className="max-w-5xl mx-auto px-6">
-        <div className="flex items-center justify-between">
+        <div className="relative flex items-center justify-between">
           {/* Mobile menu button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -38,12 +37,12 @@ export function Header() {
           </button>
 
           {/* Desktop nav */}
-          <nav className="flex-1 hidden md:flex items-center gap-6">
+          <nav className="flex-1 hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative text-sm text-gray-500 hover:text-gray-900 transition-colors duration-150 after:absolute after:left-0 after:bottom-[-4px] after:h-[2px] after:w-0 after:bg-emerald-500 after:transition-all after:duration-150 hover:after:w-full"
+                className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-150"
               >
                 {link.label}
               </Link>
@@ -51,7 +50,7 @@ export function Header() {
           </nav>
 
           {/* Logo */}
-          <Link href="/" className="md:mx-0">
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2">
             <Image
               src="/assets/logo.svg"
               alt="Guidassur"
@@ -75,7 +74,7 @@ export function Header() {
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="relative text-sm text-gray-500 hover:text-gray-900 transition-colors duration-150 whitespace-nowrap flex items-center gap-2"
+                  className="relative text-sm text-gray-500 hover:text-red-500 transition-colors duration-150 whitespace-nowrap flex items-center gap-2"
                 >
                   <LogOut size={16} />
                   Déconnexion
@@ -89,7 +88,7 @@ export function Header() {
                 >
                   Se connecter
                 </Link>
-                <Link href="/questionnaire/auto">
+                <Link href="/questionnaire">
                   <Button size="sm">Analyser gratuitement</Button>
                 </Link>
               </>
@@ -105,7 +104,7 @@ export function Header() {
                 </Button>
               </Link>
             ) : (
-              <Link href="/analyser">
+              <Link href="/questionnaire">
                 <Button size="sm">Analyser</Button>
               </Link>
             )}
@@ -116,33 +115,33 @@ export function Header() {
       {/* Mobile menu */}
       {isOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 z-50">
-          <nav className="flex flex-col px-6 py-4 gap-4">
+          <nav className="flex flex-col px-6 py-4 gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="text-gray-700 hover:text-emerald-500 transition-colors"
+                className="px-3 py-3 text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
               >
                 {link.label}
               </Link>
             ))}
-            <hr className="border-gray-200" />
+            <hr className="border-gray-100 my-2" />
             {!isLoading && user ? (
               <>
                 <Link
                   href="/compte"
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-700 hover:text-emerald-500 transition-colors flex items-center gap-2"
+                  className="flex items-center gap-3 px-3 py-3 text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                 >
-                  <User size={16} />
+                  <User size={18} className="text-gray-400" />
                   {user.fullName || "Mon compte"}
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="text-gray-700 hover:text-emerald-500 transition-colors flex items-center gap-2 text-left"
+                  className="flex items-center gap-3 px-3 py-3 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors text-left w-full"
                 >
-                  <LogOut size={16} />
+                  <LogOut size={18} className="text-gray-400" />
                   Déconnexion
                 </button>
               </>
@@ -150,8 +149,9 @@ export function Header() {
               <Link
                 href="/login"
                 onClick={() => setIsOpen(false)}
-                className="text-gray-700 hover:text-emerald-500 transition-colors"
+                className="flex items-center gap-3 px-3 py-3 text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
               >
+                <User size={18} className="text-gray-400" />
                 Se connecter
               </Link>
             )}

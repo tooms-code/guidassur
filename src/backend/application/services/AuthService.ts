@@ -2,18 +2,17 @@ import {
   IAuthProvider,
   AuthProvider,
   AuthResult,
-  SimpleResult,
   MFAEnrollResult,
   RefreshResult,
 } from "@/backend/domain/interfaces/IAuthProvider";
 import { User } from "@/shared/types/user";
-import { authProvider } from "@/backend/infrastructure/stubs/StubAuthProvider";
+import { getAuthProvider } from "@/backend/infrastructure/providers";
 
 class AuthService implements IAuthProvider {
   private provider: IAuthProvider;
 
-  constructor(provider: IAuthProvider) {
-    this.provider = provider;
+  constructor() {
+    this.provider = getAuthProvider();
   }
 
   async signInWithEmail(email: string, password: string): Promise<AuthResult> {
@@ -40,15 +39,15 @@ class AuthService implements IAuthProvider {
     return this.provider.refreshSession(refreshToken);
   }
 
-  async changePassword(currentPassword: string, newPassword: string): Promise<SimpleResult> {
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
     return this.provider.changePassword(currentPassword, newPassword);
   }
 
-  async resetPassword(email: string): Promise<SimpleResult> {
+  async resetPassword(email: string): Promise<void> {
     return this.provider.resetPassword(email);
   }
 
-  async getMFAStatus(): Promise<{ enabled: boolean; factorId?: string }> {
+  async getMFAStatus(): Promise<{ enabled: boolean; factorId?: string; pendingFactorId?: string }> {
     return this.provider.getMFAStatus();
   }
 
@@ -56,13 +55,25 @@ class AuthService implements IAuthProvider {
     return this.provider.enrollMFA();
   }
 
-  async verifyMFA(factorId: string, code: string): Promise<SimpleResult> {
+  async verifyMFA(factorId: string, code: string): Promise<void> {
     return this.provider.verifyMFA(factorId, code);
   }
 
-  async unenrollMFA(factorId: string, code: string): Promise<SimpleResult> {
+  async unenrollMFA(factorId: string, code: string): Promise<void> {
     return this.provider.unenrollMFA(factorId, code);
+  }
+
+  async verifyPassword(password: string): Promise<boolean> {
+    return this.provider.verifyPassword(password);
+  }
+
+  async getAALStatus(): Promise<{ currentLevel: string; nextLevel: string }> {
+    return this.provider.getAALStatus();
+  }
+
+  async challengeMFA(factorId: string, code: string): Promise<void> {
+    return this.provider.challengeMFA(factorId, code);
   }
 }
 
-export const authService = new AuthService(authProvider);
+export const authService = new AuthService();

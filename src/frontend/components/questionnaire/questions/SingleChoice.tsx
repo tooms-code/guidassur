@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
 import { QuestionDto } from "@/backend/application/dtos/questionnaire.dto";
+import { Tooltip } from "@/frontend/components/ui/Tooltip";
 
 interface SingleChoiceProps {
   question: QuestionDto;
@@ -41,7 +42,7 @@ export function SingleChoice({ question, onAnswer }: SingleChoiceProps) {
             onClick={() => handleSelect(option.value)}
             disabled={isSubmitting}
             className={`
-              w-full flex items-center justify-between p-4 rounded-xl border-2 text-left
+              w-full flex items-center justify-between p-4 rounded-xl border text-left
               transition-all duration-150
               ${
                 isSelected
@@ -53,11 +54,12 @@ export function SingleChoice({ question, onAnswer }: SingleChoiceProps) {
             `}
           >
             <span
-              className={`font-medium ${
+              className={`font-medium flex items-center ${
                 isSelected ? "text-emerald-700" : "text-gray-700"
               }`}
             >
               {option.label}
+              {option.tooltip && <Tooltip content={option.tooltip} />}
             </span>
             {isSelected && (
               <motion.div

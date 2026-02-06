@@ -17,12 +17,15 @@ export interface GetAnalysesParams {
 export interface GetAnalysesResult {
   analyses: UserAnalysis[];
   total: number;
+  limit: number;
+  offset: number;
   hasMore: boolean;
 }
 
 export interface UpdateProfileParams {
   userId: string;
   fullName?: string;
+  phone?: string;
   emailNotifications?: boolean;
 }
 
@@ -32,5 +35,10 @@ export interface IUserService {
   getStats(userId: string): Promise<UserStats>;
   getSettings(userId: string): Promise<UserSettings>;
   updateProfile(params: UpdateProfileParams): Promise<UserSettings>;
-  deleteAccount(userId: string): Promise<{ success: boolean; error?: string }>;
+  deleteAccount(userId: string): Promise<void>;
+
+  // Credits management
+  getCredits(userId: string): Promise<number>;
+  addCredits(userId: string, amount: number): Promise<number>;
+  useCredit(userId: string): Promise<{ success: boolean; remaining: number }>;
 }

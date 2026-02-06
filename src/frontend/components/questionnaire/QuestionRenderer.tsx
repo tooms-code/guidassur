@@ -11,9 +11,10 @@ import { Consent } from "./questions/Consent";
 interface QuestionRendererProps {
   question: QuestionDto;
   onAnswer: (answer: unknown) => void;
+  error?: string | null;
 }
 
-export function QuestionRenderer({ question, onAnswer }: QuestionRendererProps) {
+export function QuestionRenderer({ question, onAnswer, error }: QuestionRendererProps) {
   switch (question.type) {
     case "single-choice":
       return (
@@ -36,6 +37,7 @@ export function QuestionRenderer({ question, onAnswer }: QuestionRendererProps) 
         <NumberInput
           question={question}
           onAnswer={(answer) => onAnswer(answer)}
+          error={error}
         />
       );
 

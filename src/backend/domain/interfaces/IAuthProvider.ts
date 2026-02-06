@@ -2,9 +2,14 @@ import { User } from "@/shared/types/user";
 
 export type AuthProvider = "google" | "facebook";
 
-export interface AuthError {
-  code: string;
-  message: string;
+export class AuthError extends Error {
+  constructor(
+    public code: string,
+    message: string
+  ) {
+    super(message);
+    this.name = "AuthError";
+  }
 }
 
 export interface AuthSession {
@@ -13,28 +18,24 @@ export interface AuthSession {
   expiresAt: number;
 }
 
-export type AuthResult =
-  | { success: true; user: User; session: AuthSession }
-  | { success: false; error: AuthError };
-
-export type SimpleResult =
-  | { success: true }
-  | { success: false; error: string };
-
-export interface MFAEnrollResult {
-  success: boolean;
-  factorId?: string;
-  qrCode?: string;  // Data URL or TOTP URI
-  secret?: string;
-  error?: string;
+export interface AuthResult {
+  user: User;
+  session: AuthSession;
 }
 
-export type RefreshResult =
-  | { success: true; session: AuthSession; user: User }
-  | { success: false; error: string };
+export interface MFAEnrollResult {
+  factorId: string;
+  qrCode: string;
+  secret: string;
+}
+
+export interface RefreshResult {
+  session: AuthSession;
+  user: User;
+}
 
 export interface IAuthProvider {
-  // Authentication
+  // Authentication - throws AuthError on failure
   signInWithEmail(email: string, password: string): Promise<AuthResult>;
   signInWithProvider(provider: AuthProvider): Promise<AuthResult>;
   signUp(email: string, password: string, fullName?: string): Promise<AuthResult>;
@@ -42,13 +43,16 @@ export interface IAuthProvider {
   getCurrentUser(): User | null;
   refreshSession(refreshToken: string): Promise<RefreshResult>;
 
-  // Password management
-  changePassword(currentPassword: string, newPassword: string): Promise<SimpleResult>;
-  resetPassword(email: string): Promise<SimpleResult>;
+  // Password management - throws AuthError on failure
+  changePassword(currentPassword: string, newPassword: string): Promise<void>;
+  resetPassword(email: string): Promise<void>;
+  verifyPassword(password: string): Promise<boolean>;
 
-  // MFA - Compatible with Supabase Auth MFA
-  getMFAStatus(): Promise<{ enabled: boolean; factorId?: string }>;
+  // MFA - throws AuthError on failure
+  getMFAStatus(): Promise<{ enabled: boolean; factorId?: string; pendingFactorId?: string }>;
   enrollMFA(): Promise<MFAEnrollResult>;
-  verifyMFA(factorId: string, code: string): Promise<SimpleResult>;
-  unenrollMFA(factorId: string, code: string): Promise<SimpleResult>;
+  verifyMFA(factorId: string, code: string): Promise<void>;
+  unenrollMFA(factorId: string, code: string): Promise<void>;
+  getAALStatus(): Promise<{ currentLevel: string; nextLevel: string }>;
+  challengeMFA(factorId: string, code: string): Promise<void>;
 }

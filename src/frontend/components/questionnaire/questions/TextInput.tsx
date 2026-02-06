@@ -41,7 +41,7 @@ export function TextInput({ question, onAnswer }: TextInputProps) {
         placeholder={question.placeholder || ""}
         className="
           w-full text-center text-xl py-4 px-4
-          border-2 border-gray-200 rounded-xl bg-white
+          border border-gray-200 rounded-xl bg-white
           focus:outline-none focus:border-emerald-500
           transition-colors duration-150
         "

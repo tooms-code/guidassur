@@ -3,19 +3,6 @@ import { QuestionConfig } from "@/shared/types/questionnaire";
 export const habitationQuestions: QuestionConfig[] = [
   // Step: Ton contrat
   {
-    id: "prime_annuelle",
-    step: "Ton contrat",
-    type: "number",
-    label: "Combien paies-tu par an pour ton assurance habitation ?",
-    unit: "€",
-    required: true,
-    placeholder: "250",
-    tip: {
-      text: "Montant annuel total. Souvent prélevé mensuellement, multiplie par 12.",
-      icon: "info",
-    },
-  },
-  {
     id: "franchise",
     step: "Ton contrat",
     type: "number",
@@ -35,12 +22,36 @@ export const habitationQuestions: QuestionConfig[] = [
     label: "Quelles garanties as-tu dans ton contrat ?",
     required: false,
     options: [
-      { value: "vol", label: "Vol" },
-      { value: "incendie", label: "Incendie" },
-      { value: "degats_eaux", label: "Dégâts des eaux" },
-      { value: "responsabilite_civile", label: "Responsabilité civile" },
-      { value: "protection_juridique", label: "Protection juridique" },
-      { value: "bris_glace", label: "Bris de glace" },
+      {
+        value: "vol",
+        label: "Vol",
+        tooltip: "Indemnisation en cas de cambriolage ou vol par effraction"
+      },
+      {
+        value: "incendie",
+        label: "Incendie",
+        tooltip: "Couvre les dommages causés par un incendie, explosion ou foudre"
+      },
+      {
+        value: "degats_eaux",
+        label: "Dégâts des eaux",
+        tooltip: "Sinistre le plus fréquent : fuite, rupture de canalisation, infiltration"
+      },
+      {
+        value: "responsabilite_civile",
+        label: "Responsabilité civile",
+        tooltip: "Obligatoire pour les locataires : couvre les dommages causés aux autres"
+      },
+      {
+        value: "protection_juridique",
+        label: "Protection juridique",
+        tooltip: "Aide juridique et prise en charge des frais en cas de litige"
+      },
+      {
+        value: "bris_glace",
+        label: "Bris de glace",
+        tooltip: "Couvre le remplacement des vitres, vérandas et éléments vitrés"
+      },
     ],
     tip: {
       text: "La responsabilité civile est obligatoire pour les locataires. Les autres garanties dépendent de ta situation.",
@@ -81,11 +92,31 @@ export const habitationQuestions: QuestionConfig[] = [
     label: "Quel est ton statut d'occupation ?",
     required: true,
     options: [
-      { value: "locataire", label: "Locataire" },
-      { value: "proprietaire", label: "Propriétaire occupant" },
-      { value: "colocataire", label: "Colocataire" },
-      { value: "bailleur", label: "Bailleur" },
-      { value: "pno", label: "PNO (Propriétaire Non Occupant)" },
+      {
+        value: "locataire",
+        label: "Locataire",
+        tooltip: "Tu loues le logement : assurance obligatoire minimum RC"
+      },
+      {
+        value: "proprietaire",
+        label: "Propriétaire occupant",
+        tooltip: "Tu possèdes et habites le logement"
+      },
+      {
+        value: "colocataire",
+        label: "Colocataire",
+        tooltip: "Tu loues en colocation : chacun doit avoir sa propre assurance"
+      },
+      {
+        value: "bailleur",
+        label: "Bailleur",
+        tooltip: "Tu loues ton bien à un locataire : assurance spécifique propriétaire bailleur"
+      },
+      {
+        value: "pno",
+        label: "PNO (Propriétaire Non Occupant)",
+        tooltip: "Logement vide/en vente : assurance pour propriétaire non occupant"
+      },
     ],
     tip: {
       text: "PNO = Propriétaire Non Occupant. Ton statut change les garanties nécessaires.",
@@ -99,9 +130,9 @@ export const habitationQuestions: QuestionConfig[] = [
     label: "Quelle est la valeur estimée de ton mobilier ?",
     required: true,
     options: [
-      { value: "moins_3k", label: "< 3 000 €" },
-      { value: "3k_10k", label: "3 000 - 10 000 €" },
-      { value: "plus_10k", label: "> 10 000 €" },
+      { value: "moins_5k", label: "< 5 000 €" },
+      { value: "5k_25k", label: "5 000 - 25 000 €" },
+      { value: "plus_25k", label: "> 25 000 €" },
     ],
     tip: {
       text: "Sous-estimer = être mal remboursé. Surestimer = payer trop cher. Fais un inventaire rapide.",
@@ -116,9 +147,9 @@ export const habitationQuestions: QuestionConfig[] = [
     required: true,
     options: [
       { value: "aucun", label: "Aucun" },
-      { value: "digicode", label: "Digicode" },
       { value: "alarme", label: "Alarme" },
       { value: "camera", label: "Caméra" },
+      { value: "alarme_camera", label: "Alarme + Caméra" },
     ],
     tip: {
       text: "Un système de sécurité peut réduire ta prime et est parfois exigé pour la garantie vol.",
@@ -182,11 +213,17 @@ export const habitationQuestions: QuestionConfig[] = [
   {
     id: "objets_valeur",
     step: "Ton logement",
-    type: "yes-no",
-    label: "Possèdes-tu des objets de valeur (bijoux, œuvres d'art, collections) ?",
+    type: "single-choice",
+    label: "Quelle est la valeur estimée de tes objets de valeur ?",
     required: true,
+    options: [
+      { value: "aucun", label: "Je n'en ai pas" },
+      { value: "moins_1k", label: "< 1 000 €" },
+      { value: "1k_3k", label: "1 000 - 3 000 €" },
+      { value: "plus_3k", label: "> 3 000 €" },
+    ],
     tip: {
-      text: "Bijoux, œuvres d'art, collections, instruments de musique... Souvent plafonnés dans les contrats standard.",
+      text: "Bijoux, œuvres d'art, collections, instruments de musique... Ces objets sont souvent plafonnés dans les contrats standard. Estime leur valeur totale.",
       icon: "money",
     },
   },

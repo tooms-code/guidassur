@@ -3,31 +3,42 @@ import { QuestionConfig } from "@/shared/types/questionnaire";
 export const mutuelleQuestions: QuestionConfig[] = [
   // Step: Ton contrat
   {
-    id: "prime_annuelle",
-    step: "Ton contrat",
-    type: "number",
-    label: "Combien paies-tu par an pour ta mutuelle ?",
-    unit: "€",
-    required: true,
-    placeholder: "600",
-    tip: {
-      text: "Cotisation totale sur l'année. Si c'est une mutuelle d'entreprise, c'est ta part salariale.",
-      icon: "info",
-    },
-  },
-  {
     id: "options_garanties",
     step: "Ton contrat",
     type: "multi-choice",
     label: "Quelles garanties renforcées as-tu ?",
     required: false,
     options: [
-      { value: "hospitalisation", label: "Hospitalisation" },
-      { value: "depassements", label: "Dépassements d'honoraires" },
-      { value: "medecines_douces", label: "Médecines douces" },
-      { value: "optique", label: "Optique renforcé" },
-      { value: "dentaire", label: "Dentaire renforcé" },
-      { value: "chambre_seule", label: "Chambre seule" },
+      {
+        value: "hospitalisation",
+        label: "Hospitalisation",
+        tooltip: "Meilleure prise en charge des frais d'hospitalisation (chambre, forfait journalier)"
+      },
+      {
+        value: "depassements",
+        label: "Dépassements d'honoraires",
+        tooltip: "Remboursement des dépassements chez les médecins en secteur 2"
+      },
+      {
+        value: "medecines_douces",
+        label: "Médecines douces",
+        tooltip: "Prise en charge de l'ostéopathie, acupuncture, naturopathie, etc."
+      },
+      {
+        value: "optique",
+        label: "Optique renforcé",
+        tooltip: "Remboursement élevé pour lunettes, lentilles et verres progressifs"
+      },
+      {
+        value: "dentaire",
+        label: "Dentaire renforcé",
+        tooltip: "Meilleure prise en charge des couronnes, implants et prothèses"
+      },
+      {
+        value: "chambre_seule",
+        label: "Chambre seule",
+        tooltip: "Garantie d'avoir une chambre individuelle lors d'une hospitalisation"
+      },
     ],
     tip: {
       text: "Identifie les garanties importantes pour toi. Inutile de payer pour ce que tu n'utilises jamais.",
@@ -46,7 +57,7 @@ export const mutuelleQuestions: QuestionConfig[] = [
     max: 99,
     placeholder: "35",
     tip: {
-      text: "Les besoins évoluent avec l'âge. À 25 ans et à 60 ans, on n'a pas les mêmes priorités.",
+      text: "Les besoins évoluent avec l'âge. À 25 ans et à 60 ans, on n'a pas les mêmes priorités. Les tarifs augmentent également avec l'âge, car les risques de santé sont plus élevés.",
       icon: "info",
     },
   },
@@ -57,10 +68,26 @@ export const mutuelleQuestions: QuestionConfig[] = [
     label: "Quelle est ta situation professionnelle ?",
     required: true,
     options: [
-      { value: "salarie", label: "Salarié" },
-      { value: "etudiant", label: "Étudiant" },
-      { value: "independant", label: "Indépendant" },
-      { value: "retraite", label: "Retraité" },
+      {
+        value: "salarie",
+        label: "Salarié",
+        tooltip: "Souvent mutuelle d'entreprise obligatoire avec participation de l'employeur"
+      },
+      {
+        value: "etudiant",
+        label: "Étudiant",
+        tooltip: "Possibilité de rester sur la mutuelle parentale ou souscrire une mutuelle étudiante"
+      },
+      {
+        value: "independant",
+        label: "Indépendant",
+        tooltip: "Pas de mutuelle d'entreprise : tu dois tout gérer toi-même"
+      },
+      {
+        value: "retraite",
+        label: "Retraité",
+        tooltip: "Besoins en santé plus importants : privilégie une bonne couverture"
+      },
     ],
     tip: {
       text: "Les salariés ont souvent une mutuelle d'entreprise obligatoire. Les indépendants doivent tout gérer eux-mêmes.",
@@ -109,7 +136,7 @@ export const mutuelleQuestions: QuestionConfig[] = [
     label: "Consultes-tu fréquemment des spécialistes ?",
     required: true,
     tip: {
-      text: "Dermato, ophtalmo, psy... Beaucoup pratiquent des dépassements d'honoraires non remboursés.",
+      text: "Dermatologue, ophtalmologue, psychiatre, psychologue... Beaucoup de spécialistes pratiquent des dépassements d'honoraires non remboursés par la Sécurité sociale.",
       icon: "info",
     },
   },

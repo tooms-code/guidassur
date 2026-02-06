@@ -19,6 +19,7 @@ export interface QuestionTip {
 export interface QuestionOption {
   value: string;
   label: string;
+  tooltip?: string; // Texte explicatif affiché au survol
 }
 
 export interface Question {

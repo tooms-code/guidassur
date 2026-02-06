@@ -13,81 +13,26 @@ import {
   CompleteQuestionnaireResponseDto,
   SaveDraftRequestDto,
   SaveDraftResponseDto,
+  ResumeQuestionnaireRequestDto,
+  ResumeQuestionnaireResponseDto,
   QuestionDto,
   ProgressDto,
 } from "@/backend/application/dtos/questionnaire.dto";
 import { InsuranceType } from "@/shared/types/questionnaire";
-
-// API functions
-async function startQuestionnaire(
-  data: StartQuestionnaireRequestDto
-): Promise<StartQuestionnaireResponseDto> {
-  const response = await fetch("/api/questionnaire/start", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Erreur lors du démarrage");
-  }
-
-  return response.json();
-}
-
-async function submitAnswer(
-  data: AnswerQuestionRequestDto
-): Promise<NextQuestionResponseDto> {
-  const response = await fetch("/api/questionnaire/next", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Erreur lors de la soumission");
-  }
-
-  return response.json();
-}
-
-async function goToPrevQuestion(
-  data: PrevQuestionRequestDto
-): Promise<PrevQuestionResponseDto> {
-  const response = await fetch("/api/questionnaire/prev", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Erreur lors du retour");
-  }
-
-  return response.json();
-}
+import { apiPost } from "@/frontend/lib/api";
 
 const ANALYSIS_STORAGE_KEY = "guidassur_analysis_";
 const ANALYSIS_META_KEY = "guidassur_analysis_meta_";
 
+// API functions
 async function completeQuestionnaire(
   data: CompleteQuestionnaireRequestDto
 ): Promise<CompleteQuestionnaireResponseDto> {
-  const response = await fetch("/api/questionnaire/complete", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Erreur lors de la finalisation");
-  }
-
-  const result = await response.json();
+  const result = await apiPost<CompleteQuestionnaireResponseDto>(
+    "/api/questionnaire/complete",
+    data,
+    "Erreur lors de la finalisation"
+  );
 
   // Store analysis in sessionStorage for reliable retrieval on results page
   if (typeof window !== "undefined" && result.analysis) {
@@ -95,7 +40,6 @@ async function completeQuestionnaire(
       ANALYSIS_STORAGE_KEY + result.analysisId,
       JSON.stringify(result.analysis)
     );
-    // Store meta data (insuranceType, answers) for unlock regeneration
     sessionStorage.setItem(
       ANALYSIS_META_KEY + result.analysisId,
       JSON.stringify({
@@ -109,19 +53,13 @@ async function completeQuestionnaire(
   return result;
 }
 
-async function saveDraft(data: SaveDraftRequestDto): Promise<SaveDraftResponseDto> {
-  const response = await fetch("/api/questionnaire/save-draft", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Erreur lors de la sauvegarde");
+async function abandonSession(sessionId: string): Promise<void> {
+  try {
+    await apiPost("/api/questionnaire/abandon", { sessionId });
+  } catch {
+    // Silent fail - we're abandoning anyway
+    console.error("Error abandoning session");
   }
-
-  return response.json();
 }
 
 // Hook
@@ -138,7 +76,8 @@ export function useQuestionnaire() {
 
   // Start mutation
   const startMutation = useMutation({
-    mutationFn: startQuestionnaire,
+    mutationFn: (data: StartQuestionnaireRequestDto) =>
+      apiPost<StartQuestionnaireResponseDto>("/api/questionnaire/start", data, "Erreur lors du démarrage"),
     onSuccess: (data) => {
       setSessionId(data.sessionId);
       setCurrentQuestion(data.question);
@@ -153,7 +92,8 @@ export function useQuestionnaire() {
 
   // Answer mutation
   const answerMutation = useMutation({
-    mutationFn: submitAnswer,
+    mutationFn: (data: AnswerQuestionRequestDto) =>
+      apiPost<NextQuestionResponseDto>("/api/questionnaire/next", data, "Erreur lors de la soumission"),
     onSuccess: (data) => {
       if (data.complete) {
         setIsComplete(true);
@@ -170,7 +110,8 @@ export function useQuestionnaire() {
 
   // Prev mutation
   const prevMutation = useMutation({
-    mutationFn: goToPrevQuestion,
+    mutationFn: (data: PrevQuestionRequestDto) =>
+      apiPost<PrevQuestionResponseDto>("/api/questionnaire/prev", data, "Erreur lors du retour"),
     onSuccess: (data) => {
       setCurrentQuestion(data.question);
       setProgress(data.progress);
@@ -189,15 +130,33 @@ export function useQuestionnaire() {
 
   // Save draft mutation
   const saveDraftMutation = useMutation({
-    mutationFn: saveDraft,
+    mutationFn: (data: SaveDraftRequestDto) =>
+      apiPost<SaveDraftResponseDto>("/api/questionnaire/save-draft", data, "Erreur lors de la sauvegarde"),
+  });
+
+  // Resume mutation
+  const resumeMutation = useMutation({
+    mutationFn: (data: ResumeQuestionnaireRequestDto) =>
+      apiPost<ResumeQuestionnaireResponseDto>("/api/questionnaire/resume", data, "Erreur lors de la reprise"),
+    onSuccess: (data) => {
+      setSessionId(data.sessionId);
+      setType(data.type);
+      setCurrentQuestion(data.question);
+      setProgress(data.progress);
+      setIsComplete(false);
+      setError(null);
+    },
+    onError: (err: Error) => {
+      setError(err.message);
+    },
   });
 
   // Actions
   const start = useCallback(
-    async (insuranceType: InsuranceType) => {
+    async (insuranceType: InsuranceType, initialPrice?: number) => {
       setType(insuranceType);
       setError(null);
-      await startMutation.mutateAsync({ type: insuranceType });
+      await startMutation.mutateAsync({ type: insuranceType, initialPrice });
     },
     [startMutation]
   );
@@ -227,13 +186,21 @@ export function useQuestionnaire() {
     async (email?: string): Promise<boolean> => {
       if (!sessionId) return false;
       try {
-        const result = await saveDraftMutation.mutateAsync({ sessionId, email });
-        return result.success;
+        await saveDraftMutation.mutateAsync({ sessionId, email });
+        return true;
       } catch {
         return false;
       }
     },
     [sessionId, saveDraftMutation]
+  );
+
+  const resumeSession = useCallback(
+    async (resumeSessionId: string) => {
+      setError(null);
+      await resumeMutation.mutateAsync({ sessionId: resumeSessionId });
+    },
+    [resumeMutation]
   );
 
   const reset = useCallback(() => {
@@ -246,11 +213,19 @@ export function useQuestionnaire() {
     queryClient.invalidateQueries({ queryKey: ["questionnaire"] });
   }, [queryClient]);
 
+  const abandon = useCallback(async () => {
+    if (sessionId) {
+      await abandonSession(sessionId);
+    }
+    reset();
+  }, [sessionId, reset]);
+
   const isLoading =
     startMutation.isPending ||
     answerMutation.isPending ||
     prevMutation.isPending ||
-    completeMutation.isPending;
+    completeMutation.isPending ||
+    resumeMutation.isPending;
 
   const isSubmitting = answerMutation.isPending || prevMutation.isPending;
 
@@ -271,6 +246,8 @@ export function useQuestionnaire() {
     goBack,
     complete,
     saveDraft: saveCurrentDraft,
+    resume: resumeSession,
     reset,
+    abandon,
   };
 }
