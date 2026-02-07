@@ -1,16 +1,10 @@
 import { User } from "@/shared/types/user";
+import { AuthError } from "@/backend/domain/errors/auth.errors";
 
 export type OAuthProvider = "google" | "facebook";
 
-export class AuthError extends Error {
-  constructor(
-    public code: string,
-    message: string
-  ) {
-    super(message);
-    this.name = "AuthError";
-  }
-}
+// Re-export for convenience
+export { AuthError };
 
 export interface Session {
   accessToken: string;

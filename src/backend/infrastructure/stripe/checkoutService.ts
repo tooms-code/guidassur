@@ -82,7 +82,7 @@ export async function createCreditsCheckoutSession(
 
     const cancelUrl = analysisId
       ? params.cancelUrl || `${appUrl}/resultat/${analysisId}?payment=cancelled`
-      : params.cancelUrl || `${appUrl}/#tarifs?payment=cancelled`;
+      : params.cancelUrl || `${appUrl}/checkout/cancel?priceId=${priceId}`;
 
     const metadata: Record<string, string> = {
       type: "credits_purchase",

@@ -125,8 +125,8 @@ async function handleCreditsPurchasePayment(
   }
 
   const credits = parseInt(creditsStr, 10);
-  if (isNaN(credits) || credits < 1) {
-    logger.error("Invalid credits in metadata", { sessionId: session.id, creditsStr });
+  if (isNaN(credits) || credits < 1 || credits > 1000) {
+    logger.error("Invalid credits in metadata", { sessionId: session.id, creditsStr, credits });
     return { handled: false, message: "Invalid credits value" };
   }
 

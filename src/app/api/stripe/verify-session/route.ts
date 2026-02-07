@@ -73,7 +73,7 @@ export const POST = createHandler(
         }
 
         const credits = parseInt(creditsStr, 10);
-        if (isNaN(credits) || credits < 1) {
+        if (isNaN(credits) || credits < 1 || credits > 1000) {
           return NextResponse.json(
             { error: "Nombre de crédits invalide" },
             { status: 400 }

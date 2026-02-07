@@ -2,10 +2,10 @@ import {
   IAuthProvider,
   AuthProvider,
   AuthResult,
-  AuthError,
   MFAEnrollResult,
   RefreshResult,
 } from "@/backend/domain/interfaces/IAuthProvider";
+import { AuthError } from "@/backend/domain/errors/auth.errors";
 import { User } from "@/shared/types/user";
 import { createSupabaseServerClient, createAdminClient } from "./client";
 import { logger } from "@/backend/infrastructure/utils/logger";

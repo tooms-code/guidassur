@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHandler, RateLimit } from "@/backend/infrastructure/api/handler";
 import { authService } from "@/backend/application/services/AuthService";
-import { AuthError } from "@/backend/domain/interfaces/IAuthService";
+import { AuthError } from "@/backend/domain/errors/auth.errors";
 import {
   RegisterRequestDto,
   toAuthResponseDto,

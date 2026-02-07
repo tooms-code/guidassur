@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHandler, RateLimit } from "@/backend/infrastructure/api/handler";
 import { authService } from "@/backend/application/services/AuthService";
-import { AuthError } from "@/backend/domain/interfaces/IAuthService";
+import { AuthError } from "@/backend/domain/errors/auth.errors";
 import {
   LoginRequestDto,
   toAuthResponseDto,
@@ -41,7 +41,6 @@ export const POST = createHandler(
       return NextResponse.json(response);
     } catch (error) {
       if (error instanceof AuthError) {
-        // Always return same generic message to prevent user enumeration
         const errorDto: ErrorResponseDto = { error: "Email ou mot de passe incorrect" };
         return NextResponse.json(errorDto, { status: 401 });
       }

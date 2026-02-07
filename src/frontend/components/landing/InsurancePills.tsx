@@ -31,7 +31,7 @@ export function InsurancePills() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.05 }}
-              className="flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 rounded-full"
+              className="flex items-center gap-2.5 px-4 py-2.5 bg-white border border-gray-200 rounded-lg"
             >
               <Icon size={16} className="text-gray-400" strokeWidth={1.5} />
               <span className="text-sm text-gray-600">{insuranceLabels[type]}</span>

@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/frontend/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { cn } from "@/frontend/lib/cn";
@@ -30,6 +29,7 @@ export function Pricing() {
   const { user } = useAuth();
   const checkoutMutation = useCreditsCheckout();
   const { prices: creditPrices, isLoading } = useCreditPrices();
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
 
   // Generate plans from Stripe data
   const plans: PricingPlan[] = useMemo(() => {
@@ -92,6 +92,8 @@ export function Pricing() {
   }, [creditPrices]);
 
   const handlePurchase = (plan: PricingPlan) => {
+    setLoadingPlanId(plan.id);
+
     if (!plan.priceId) {
       // Free plan - just redirect
       if (plan.href) {
@@ -195,29 +197,18 @@ export function Pricing() {
                   ))}
                 </ul>
 
-                {plan.href && !plan.priceId ? (
-                  <Link href={plan.href} className="block">
-                    <Button
-                      variant={isPopular ? "primary" : "secondary"}
-                      className="w-full"
-                    >
-                      {plan.cta}
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button
-                    variant={isPopular ? "primary" : "secondary"}
-                    className="w-full"
-                    onClick={() => handlePurchase(plan)}
-                    disabled={checkoutMutation.isPending}
-                  >
-                    {checkoutMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      plan.cta
-                    )}
-                  </Button>
-                )}
+                <Button
+                  variant={isPopular ? "primary" : "secondary"}
+                  className="w-full"
+                  onClick={() => handlePurchase(plan)}
+                  disabled={loadingPlanId !== null}
+                >
+                  {loadingPlanId === plan.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    plan.cta
+                  )}
+                </Button>
               </motion.div>
             );
           })}
@@ -275,29 +266,18 @@ export function Pricing() {
                 </ul>
 
                 <div className="mt-auto pt-8">
-                  {plan.href && !plan.priceId ? (
-                    <Link href={plan.href} className="block">
-                      <Button
-                        variant={isPopular ? "primary" : "secondary"}
-                        className="w-full"
-                      >
-                        {plan.cta}
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Button
-                      variant={isPopular ? "primary" : "secondary"}
-                      className="w-full"
-                      onClick={() => handlePurchase(plan)}
-                      disabled={checkoutMutation.isPending}
-                    >
-                      {checkoutMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        plan.cta
-                      )}
-                    </Button>
-                  )}
+                  <Button
+                    variant={isPopular ? "primary" : "secondary"}
+                    className="w-full"
+                    onClick={() => handlePurchase(plan)}
+                    disabled={loadingPlanId !== null}
+                  >
+                    {loadingPlanId === plan.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      plan.cta
+                    )}
+                  </Button>
                 </div>
               </motion.div>
             );

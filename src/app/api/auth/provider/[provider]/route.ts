@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authService } from "@/backend/application/services/AuthService";
-import { AuthProvider, AuthError } from "@/backend/domain/interfaces/IAuthProvider";
+import { AuthProvider } from "@/backend/domain/interfaces/IAuthProvider";
+import { AuthError } from "@/backend/domain/errors/auth.errors";
 import { ErrorResponseDto } from "@/backend/application/dtos/auth.dto";
 import { logger } from "@/backend/infrastructure/utils/logger";
 

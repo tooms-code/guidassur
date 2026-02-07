@@ -87,7 +87,15 @@ class PaymentProcessingService {
 
         const unlockedAnalysis = await analysisService.unlockAnalysis(analysisId);
         if (!unlockedAnalysis) {
-          logger.error("Failed to unlock analysis after payment", { analysisId });
+          // REFUND: Add the credit back since unlock failed
+          await userService.addCredits(userId, 1);
+          newBalance = newBalance + 1;
+
+          logger.error("Failed to unlock analysis after payment, refunded credit", {
+            analysisId,
+            userId,
+            stripeSessionId
+          });
           await paymentService.markFailed(stripeSessionId, "unlock_failed");
           return {
             success: false,

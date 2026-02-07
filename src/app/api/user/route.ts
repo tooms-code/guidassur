@@ -4,7 +4,7 @@ import { userService } from "@/backend/application/services/UserService";
 import { authService } from "@/backend/application/services/AuthService";
 import { ErrorResponseDto } from "@/backend/application/dtos/auth.dto";
 import { DeleteAccountRequestDto } from "@/backend/application/dtos/user.dto";
-import { AuthError } from "@/backend/domain/interfaces/IAuthProvider";
+import { AuthError } from "@/backend/domain/errors/auth.errors";
 import { logger } from "@/backend/infrastructure/utils/logger";
 
 export const DELETE = createAuthHandler(

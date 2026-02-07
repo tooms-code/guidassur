@@ -226,6 +226,7 @@ function LoginContent() {
   const redirect = searchParams.get("redirect");
   const action = searchParams.get("action");
   const packageId = searchParams.get("packageId");
+  const priceId = searchParams.get("priceId");
   const { signIn, signInWithProvider, verifyMFALogin, isLoading, isMFALoading, error, clearError } = useAuth();
 
   const [mfaRequired, setMfaRequired] = useState(false);
@@ -240,6 +241,7 @@ function LoginContent() {
     const url = new URL(redirect, window.location.origin);
     if (action) url.searchParams.set("action", action);
     if (packageId) url.searchParams.set("packageId", packageId);
+    if (priceId) url.searchParams.set("priceId", priceId);
     return url.pathname + url.search;
   };
 
@@ -291,6 +293,7 @@ function LoginContent() {
     if (redirect) params.set("redirect", redirect);
     if (action) params.set("action", action);
     if (packageId) params.set("packageId", packageId);
+    if (priceId) params.set("priceId", priceId);
     const queryString = params.toString();
     return queryString ? `/register?${queryString}` : "/register";
   })();
